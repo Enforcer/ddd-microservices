@@ -7,6 +7,8 @@ services:
 
   postgresdb:
     image: postgres:15.3
+    volumes:
+      - ./docker/postgres_initdb:/docker-entrypoint-initdb.d
     environment:
       - POSTGRES_PASSWORD=usf
       - POSTGRES_USER=usf
@@ -58,3 +60,39 @@ services:
       ME_CONFIG_MONGODB_ADMINUSERNAME: usf
       ME_CONFIG_MONGODB_ADMINPASSWORD: usf
       ME_CONFIG_MONGODB_URL: mongodb://usf:usf@mongodb:27017/
+
+  items:
+    image: micro-usf
+    hostname: docker-usf-items
+    ports:
+      - "8100:8100"
+    volumes:
+      - ./used_stuff_market/items:/usr/src/app
+      - ./used_stuff_market/libraries:/usr/src/libraries
+    environment:
+      PYTHONPATH: /usr/src/libraries
+    command: bash -c 'alembic upgrade head && uvicorn items.api:app --host 0.0.0.0 --port 8100 --reload'
+
+  negotiations:
+    image: micro-usf
+    hostname: docker-usf-negotiations
+    ports:
+      - "8200:8200"
+    volumes:
+      - ./used_stuff_market/negotiations:/usr/src/app
+      - ./used_stuff_market/libraries:/usr/src/libraries
+    environment:
+      PYTHONPATH: /usr/src/libraries
+    command: uvicorn negotiations.api:app --host 0.0.0.0 --port 8200 --reload
+
+  availability:
+    image: micro-usf
+    hostname: docker-usf-availability
+    ports:
+      - "8300:8300"
+    volumes:
+      - ./used_stuff_market/availability:/usr/src/app
+      - ./used_stuff_market/libraries:/usr/src/libraries
+    environment:
+      PYTHONPATH: /usr/src/libraries
+    command: bash -c 'alembic upgrade head && uvicorn availability.api:app --host 0.0.0.0 --port 8300 --reload'

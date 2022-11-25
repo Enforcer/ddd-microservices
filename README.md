@@ -36,3 +36,29 @@ If you need to start fresh, remove all the containers with volumes:
 docker compose down -v
 docker compose up
 ```
+
+# Running services
+
+```bash
+docker compose up <service>
+```
+where service is one of `availability`, `items`, `negotiations`
+
+## Accessing services
+
+### Items
+`http://localhost:8100/docs`
+
+### Negotiations
+`http://localhost:8200/docs`
+
+### Availability
+`http://localhost:8300/docs`
+
+# Running tests
+
+```bash
+docker compose run <service> pytest
+```
+where service is one of `availability`, `items`, `negotiations`
+
