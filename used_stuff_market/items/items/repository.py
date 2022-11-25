@@ -1,0 +1,46 @@
+from items.db import ScopedSession, mapper_registry, metadata
+from items.item import Item
+from items.money import Currency, Money
+from sqlalchemy import Column, Integer, Numeric, String, Table
+from sqlalchemy.orm import composite
+
+
+class ItemsRepository:
+    def add(self, item: Item) -> None:
+        session = ScopedSession()
+        session.add(item)
+        session.flush()
+
+    def for_owner(self, owner_id: int) -> list[Item]:
+        session = ScopedSession()
+        items: list[Item] = (
+            session.query(Item).filter(Item.owner_id == str(owner_id)).all()
+        )
+        return items
+
+
+items = Table(
+    "items",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column("owner_id", Integer()),
+    Column("title", String()),
+    Column("description", String()),
+    Column("starting_price_amount", Numeric()),
+    Column("starting_price_currency", String(3)),
+)
+
+
+mapper_registry.map_imperatively(
+    Item,
+    items,
+    properties={
+        "starting_price": composite(
+            lambda currency_code, amount: Money(
+                Currency.from_code(currency_code), amount
+            ),
+            items.c.starting_price_currency,
+            items.c.starting_price_amount,
+        ),
+    },
+)
