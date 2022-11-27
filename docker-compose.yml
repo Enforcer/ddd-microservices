@@ -70,7 +70,7 @@ services:
       - ./used_stuff_market/items:/usr/src/app
       - ./used_stuff_market/libraries:/usr/src/libraries
     environment:
-      PYTHONPATH: /usr/src/libraries
+      PYTHONPATH: /usr/src/libraries:/usr/src/app
     command: bash -c 'alembic upgrade head && uvicorn items.api:app --host 0.0.0.0 --port 8100 --reload'
 
   negotiations:
@@ -82,8 +82,8 @@ services:
       - ./used_stuff_market/negotiations:/usr/src/app
       - ./used_stuff_market/libraries:/usr/src/libraries
     environment:
-      PYTHONPATH: /usr/src/libraries
-    command: uvicorn negotiations.api:app --host 0.0.0.0 --port 8200 --reload
+      PYTHONPATH: /usr/src/libraries:/usr/src/app
+    command: bash -c 'python negotiations/migrations.py && uvicorn negotiations.api:app --host 0.0.0.0 --port 8200 --reload'
 
   availability:
     image: micro-usf
@@ -94,5 +94,5 @@ services:
       - ./used_stuff_market/availability:/usr/src/app
       - ./used_stuff_market/libraries:/usr/src/libraries
     environment:
-      PYTHONPATH: /usr/src/libraries
+      PYTHONPATH: /usr/src/libraries:/usr/src/app
     command: bash -c 'alembic upgrade head && uvicorn availability.api:app --host 0.0.0.0 --port 8300 --reload'
