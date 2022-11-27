@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import Any
 
 import factory
@@ -12,6 +13,8 @@ class NegotiationFactory(factory.Factory):
     item_id = factory.Sequence(lambda n: n + 1)
     seller_id = factory.Sequence(lambda n: n + 1)
     buyer_id = factory.Sequence(lambda n: n + 1)
+    price = Decimal("12.99")
+    currency = "USD"
 
     @classmethod
     def create(cls, **kwargs: Any) -> Negotiation:

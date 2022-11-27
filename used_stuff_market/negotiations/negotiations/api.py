@@ -2,7 +2,9 @@ from decimal import Decimal
 
 from fastapi import FastAPI, Header, Response
 from negotiations.currency import Currency
+from negotiations.negotiation import Negotiation
 from negotiations.queues import setup_queues
+from negotiations.repository import NegotiationsRepository
 from pydantic import BaseModel
 from starlette.responses import JSONResponse
 
@@ -35,6 +37,15 @@ class NewNegotiation(BaseModel):
 def start_negotiation(
     item_id: int, payload: NewNegotiation, user_id: int = Header()
 ) -> Response:
+    repository = NegotiationsRepository()
+    negotiation = Negotiation(
+        item_id=item_id,
+        buyer_id=payload.buyer_id,
+        seller_id=payload.seller_id,
+        price=payload.price,
+        currency=payload.currency,
+    )
+    repository.insert(negotiation)
     return Response(status_code=204)
 
 
@@ -58,8 +69,15 @@ class CounterOffer(BaseModel):
 @app.get("/items/{item_id}/negotiations")
 def get(
     item_id: int, buyer_id: int, seller_id: int, user_id: int = Header()
-) -> Response:
-    return JSONResponse(status_code=200, content={})
+) -> Negotiation | Response:
+    repository = NegotiationsRepository()
+    negotiation = repository.get(
+        buyer_id=buyer_id, seller_id=seller_id, item_id=item_id
+    )
+    if negotiation.broken_off:
+        return Response(status_code=404)
+
+    return negotiation
 
 
 @app.post("/items/{item_id}/negotiations/counteroffer")
@@ -86,11 +104,33 @@ class NegotiationToBreakOff(BaseModel):
 def accept(
     item_id: int, buyer_id: int, seller_id: int, user_id: int = Header()
 ) -> Response:
-    return Response(status_code=204)
+    repository = NegotiationsRepository()
+    negotiation = repository.get(
+        buyer_id=buyer_id, seller_id=seller_id, item_id=item_id
+    )
+    try:
+        negotiation.accept(user_id=user_id)
+    except Negotiation.NegotiationConcluded:
+        return Response(status_code=422)
+    except Negotiation.OnlySellerCanAccept:
+        return Response(status_code=403)
+    else:
+        repository.update(negotiation)
+        return Response(status_code=204)
 
 
 @app.delete("/items/{item_id}/negotiations")
 def break_off(
     item_id: int, buyer_id: int, seller_id: int, user_id: int = Header()
 ) -> Response:
-    return Response(status_code=204)
+    repository = NegotiationsRepository()
+    negotiation = repository.get(
+        buyer_id=buyer_id, seller_id=seller_id, item_id=item_id
+    )
+    try:
+        negotiation.break_off()
+    except Negotiation.NegotiationConcluded:
+        return Response(status_code=422)
+    else:
+        repository.update(negotiation=negotiation)
+        return Response(status_code=204)
