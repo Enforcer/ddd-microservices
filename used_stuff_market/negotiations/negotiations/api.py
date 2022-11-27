@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from fastapi import FastAPI, Header, Response
+from negotiations import factory
 from negotiations.currency import Currency
 from negotiations.negotiation import Negotiation
 from negotiations.queues import setup_queues
@@ -37,13 +38,13 @@ def start_negotiation(
     item_id: int, payload: NewNegotiation, user_id: int = Header()
 ) -> Response:
     repository = NegotiationsRepository()
-    negotiation = Negotiation(
+    negotiation = factory.build_negotiation(
+        user_id=user_id,
         item_id=item_id,
-        buyer_id=payload.buyer_id,
         seller_id=payload.seller_id,
+        buyer_id=payload.buyer_id,
         price=payload.price,
         currency=payload.currency,
-        waits_for_decision_of=payload.seller_id,
     )
     repository.insert(negotiation)
     return Response(status_code=204)
