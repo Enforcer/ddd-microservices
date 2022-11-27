@@ -3,6 +3,7 @@ from decimal import Decimal
 from fastapi import FastAPI, Header, Response
 from negotiations import factory
 from negotiations.currency import Currency
+from negotiations.money import Money
 from negotiations.negotiation import Negotiation
 from negotiations.queues import setup_queues
 from negotiations.repository import NegotiationsRepository
@@ -43,8 +44,10 @@ def start_negotiation(
         item_id=item_id,
         seller_id=payload.seller_id,
         buyer_id=payload.buyer_id,
-        price=payload.price,
-        currency=payload.currency,
+        price=Money(
+            amount=payload.price,
+            currency=payload.currency,
+        ),
     )
     repository.insert(negotiation)
     return Response(status_code=204)
@@ -90,7 +93,7 @@ def counteroffer(
         buyer_id=payload.buyer_id, seller_id=payload.seller_id, item_id=item_id
     )
     negotiation.counteroffer(
-        user_id=user_id, price=payload.price, currency=payload.currency
+        user_id=user_id, price=Money(amount=payload.price, currency=payload.currency)
     )
     repository.update(negotiation)
     return Response(status_code=204)

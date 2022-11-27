@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from negotiations.money import Money
 from pydantic import BaseModel
 
 
@@ -7,8 +8,7 @@ class Negotiation(BaseModel):
     item_id: int
     seller_id: int
     buyer_id: int
-    price: Decimal
-    currency: str
+    price: Money
     waits_for_decision_of: int
     broken_off: bool = False
     accepted: bool = False
@@ -34,7 +34,7 @@ class Negotiation(BaseModel):
             raise self.OnlyWaitingSideCanAccept
         self.accepted = True
 
-    def counteroffer(self, user_id: int, price: Decimal, currency: str) -> None:
+    def counteroffer(self, user_id: int, price: Money) -> None:
         if self.broken_off or self.accepted:
             raise self.NegotiationConcluded
 
@@ -47,4 +47,3 @@ class Negotiation(BaseModel):
             self.waits_for_decision_of = self.seller_id
 
         self.price = price
-        self.currency = currency
