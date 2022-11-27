@@ -44,8 +44,10 @@ def test_started_negotiation_is_returned(client: TestClient) -> None:
         "item_id": item_id,
         "seller_id": seller_id,
         "buyer_id": buyer_id,
-        "price": 1.99,
-        "currency": "USD",
+        "price": {
+            "amount": 1.99,
+            "currency": "USD",
+        },
         "broken_off": False,
         "accepted": False,
         "waits_for_decision_of": seller_id,
