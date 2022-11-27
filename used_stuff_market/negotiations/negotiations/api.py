@@ -6,7 +6,6 @@ from negotiations.negotiation import Negotiation
 from negotiations.queues import setup_queues
 from negotiations.repository import NegotiationsRepository
 from pydantic import BaseModel
-from starlette.responses import JSONResponse
 
 app = FastAPI()
 
@@ -44,6 +43,7 @@ def start_negotiation(
         seller_id=payload.seller_id,
         price=payload.price,
         currency=payload.currency,
+        waits_for_decision_of=payload.seller_id,
     )
     repository.insert(negotiation)
     return Response(status_code=204)
@@ -84,7 +84,15 @@ def get(
 def counteroffer(
     item_id: int, payload: CounterOffer, user_id: int = Header()
 ) -> Response:
-    return Response(status_code=200)
+    repository = NegotiationsRepository()
+    negotiation = repository.get(
+        buyer_id=payload.buyer_id, seller_id=payload.seller_id, item_id=item_id
+    )
+    negotiation.counteroffer(
+        user_id=user_id, price=payload.price, currency=payload.currency
+    )
+    repository.update(negotiation)
+    return Response(status_code=204)
 
 
 class NegotiationToBreakOff(BaseModel):
@@ -112,7 +120,7 @@ def accept(
         negotiation.accept(user_id=user_id)
     except Negotiation.NegotiationConcluded:
         return Response(status_code=422)
-    except Negotiation.OnlySellerCanAccept:
+    except Negotiation.OnlyWaitingSideCanAccept:
         return Response(status_code=403)
     else:
         repository.update(negotiation)

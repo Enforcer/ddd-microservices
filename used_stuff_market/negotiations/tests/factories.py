@@ -15,6 +15,9 @@ class NegotiationFactory(factory.Factory):
     buyer_id = factory.Sequence(lambda n: n + 1)
     price = Decimal("12.99")
     currency = "USD"
+    waits_for_decision_of = factory.LazyAttribute(
+        lambda negotiation: negotiation.seller_id
+    )
 
     @classmethod
     def create(cls, **kwargs: Any) -> Negotiation:
