@@ -48,6 +48,7 @@ def test_started_negotiation_is_returned(client: TestClient) -> None:
         "currency": "USD",
         "broken_off": False,
         "accepted": False,
+        "waits_for_decision_of": seller_id,
     }
 
 
@@ -139,7 +140,7 @@ def test_only_seller_can_accept_negotiations(client: TestClient) -> None:
             "price": "1.99",
             "currency": "USD",
         },
-        headers={"user-id": str(seller_id)},
+        headers={"user-id": str(buyer_id)},
     )
     assert create_response.status_code == 204, create_response.json()
 
@@ -189,3 +190,137 @@ def test_cant_break_off_same_negotiation_twice(client: TestClient) -> None:
         headers={"user-id": str(seller_id)},
     )
     assert another_break_off_response.status_code == 422
+
+
+def test_buyer_can_accept_after_counteroffer(client: TestClient) -> None:
+    buyer_id = next(user_ids)
+    seller_id = next(user_ids)
+    item_id = next(item_ids)
+
+    create_response = client.post(
+        f"/items/{item_id}/negotiations",
+        json={
+            "seller_id": seller_id,
+            "buyer_id": buyer_id,
+            "price": "1.99",
+            "currency": "USD",
+        },
+        headers={"user-id": str(buyer_id)},
+    )
+    assert create_response.status_code == 204, create_response.json()
+
+    counteroffer_response = client.post(
+        f"/items/{item_id}/negotiations/counteroffer",
+        json={
+            "seller_id": seller_id,
+            "buyer_id": buyer_id,
+            "price": "1.99",
+            "currency": "USD",
+        },
+        headers={"user-id": str(seller_id)},
+    )
+    assert counteroffer_response.status_code == 204, create_response.text
+
+    accept_response = client.post(
+        f"/items/{item_id}/negotiations/accept",
+        params={
+            "seller_id": seller_id,
+            "buyer_id": buyer_id,
+        },
+        headers={"user-id": str(buyer_id)},
+    )
+    assert accept_response.status_code == 204, accept_response.json()
+
+
+def test_seller_cannot_accept_after_theirs_counteroffer(client: TestClient) -> None:
+    buyer_id = next(user_ids)
+    seller_id = next(user_ids)
+    item_id = next(item_ids)
+
+    create_response = client.post(
+        f"/items/{item_id}/negotiations",
+        json={
+            "seller_id": seller_id,
+            "buyer_id": buyer_id,
+            "price": "1.99",
+            "currency": "USD",
+        },
+        headers={"user-id": str(buyer_id)},
+    )
+    assert create_response.status_code == 204, create_response.json()
+
+    counteroffer_response = client.post(
+        f"/items/{item_id}/negotiations/counteroffer",
+        json={
+            "seller_id": seller_id,
+            "buyer_id": buyer_id,
+            "price": "1.99",
+            "currency": "USD",
+        },
+        headers={"user-id": str(seller_id)},
+    )
+    assert counteroffer_response.status_code == 204, create_response.text
+
+    accept_response = client.post(
+        f"/items/{item_id}/negotiations/accept",
+        params={
+            "seller_id": seller_id,
+            "buyer_id": buyer_id,
+        },
+        headers={"user-id": str(seller_id)},
+    )
+    assert accept_response.status_code == 403, accept_response.json()
+
+
+def test_buyer_can_accept_after_counteroffer_from_them_and_then_buyer(
+    client: TestClient,
+) -> None:
+    buyer_id = next(user_ids)
+    seller_id = next(user_ids)
+    item_id = next(item_ids)
+
+    create_response = client.post(
+        f"/items/{item_id}/negotiations",
+        json={
+            "seller_id": seller_id,
+            "buyer_id": buyer_id,
+            "price": "1.99",
+            "currency": "USD",
+        },
+        headers={"user-id": str(buyer_id)},
+    )
+    assert create_response.status_code == 204, create_response.json()
+
+    counteroffer_response = client.post(
+        f"/items/{item_id}/negotiations/counteroffer",
+        json={
+            "seller_id": seller_id,
+            "buyer_id": buyer_id,
+            "price": "1.99",
+            "currency": "USD",
+        },
+        headers={"user-id": str(seller_id)},
+    )
+    assert counteroffer_response.status_code == 204, create_response.text
+
+    another_counteroffer_response = client.post(
+        f"/items/{item_id}/negotiations/counteroffer",
+        json={
+            "seller_id": seller_id,
+            "buyer_id": buyer_id,
+            "price": "1.99",
+            "currency": "USD",
+        },
+        headers={"user-id": str(buyer_id)},
+    )
+    assert another_counteroffer_response.status_code == 204, create_response.text
+
+    accept_response = client.post(
+        f"/items/{item_id}/negotiations/accept",
+        params={
+            "seller_id": seller_id,
+            "buyer_id": buyer_id,
+        },
+        headers={"user-id": str(seller_id)},
+    )
+    assert accept_response.status_code == 204, accept_response.json()
