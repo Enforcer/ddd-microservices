@@ -1,5 +1,6 @@
+from decimal import Decimal
+
 import attr
-from items.money import Money
 
 
 @attr.s(auto_attribs=True)
@@ -8,4 +9,5 @@ class Item:
     owner_id: int
     title: str
     description: str
-    starting_price: Money
+    starting_price_amount: Decimal
+    starting_price_currency: str

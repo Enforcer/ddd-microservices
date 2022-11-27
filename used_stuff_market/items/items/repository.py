@@ -1,8 +1,6 @@
 from items.db import ScopedSession, mapper_registry, metadata
 from items.item import Item
-from items.money import Currency, Money
 from sqlalchemy import Column, Integer, Numeric, String, Table
-from sqlalchemy.orm import composite
 
 
 class ItemsRepository:
@@ -34,13 +32,4 @@ items = Table(
 mapper_registry.map_imperatively(
     Item,
     items,
-    properties={
-        "starting_price": composite(
-            lambda currency_code, amount: Money(
-                Currency.from_code(currency_code), amount
-            ),
-            items.c.starting_price_currency,
-            items.c.starting_price_amount,
-        ),
-    },
 )

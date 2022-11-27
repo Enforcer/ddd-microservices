@@ -1,7 +1,7 @@
+from decimal import Decimal
 from typing import TypedDict
 
 from items.item import Item
-from items.money import Money
 from items.repository import ItemsRepository
 
 
@@ -19,29 +19,22 @@ class ItemDto(TypedDict):
 
 class Items:
     def add(
-        self, owner_id: int, title: str, description: str, starting_price: Money
+        self,
+        owner_id: int,
+        title: str,
+        description: str,
+        starting_price_amount: Decimal,
+        starting_price_currency: str,
     ) -> None:
         item = Item(
             owner_id=owner_id,
             title=title,
             description=description,
-            starting_price=starting_price,
+            starting_price_amount=starting_price_amount,
+            starting_price_currency=starting_price_currency,
         )
         repository = ItemsRepository()
         repository.add(item)
-
-        # Catalog().add(
-        #     id=item.id,
-        #     data={
-        #         "title": title,
-        #         "description": description,
-        #         "starting_price": {
-        #             "amount": self._format_amount(item.starting_price),
-        #             "currency": item.starting_price.currency.iso_code,
-        #         },
-        #     },
-        # )
-        # Availability().register(owner_id=owner_id, resource_id=item.id)
 
     def get_items(self, owner_id: int) -> list[ItemDto]:
         repository = ItemsRepository()
@@ -52,14 +45,14 @@ class Items:
                 title=item.title,
                 description=item.description,
                 starting_price=MoneyDto(
-                    amount=self._format_amount(item.starting_price),
-                    currency=item.starting_price.currency.iso_code,
+                    amount=self._format_amount(item.starting_price_amount),
+                    currency=item.starting_price_currency,
                 ),
             )
             for item in items
         ]
 
-    def _format_amount(self, price: Money) -> str:
-        decimal_points = price.currency.decimal_precision
+    def _format_amount(self, amount: Decimal) -> str:
+        decimal_points = 2
         formatter = "{0:." + str(decimal_points) + "f}"
-        return formatter.format(price.amount)
+        return formatter.format(amount)

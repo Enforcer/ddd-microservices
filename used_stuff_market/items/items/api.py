@@ -4,8 +4,7 @@ from typing import Iterator
 from fastapi import Depends, FastAPI, Header, Response
 from items.db import db_session
 from items.facade import Items
-from items.money import Currency, Money
-from pydantic import BaseModel, validator
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 
@@ -17,7 +16,7 @@ def get_session() -> Iterator[Session]:
 app = FastAPI(dependencies=[Depends(get_session)])
 
 
-class MoneyData(BaseModel):
+class Price(BaseModel):
     amount: Decimal
     currency: str
 
@@ -25,11 +24,7 @@ class MoneyData(BaseModel):
 class AddItemData(BaseModel):
     title: str
     description: str
-    starting_price: MoneyData
-
-    @validator("starting_price")
-    def money_validate(cls, v: MoneyData) -> Money:
-        return Money(Currency.from_code(v.currency), v.amount)
+    starting_price: Price
 
     class Config:
         schema_extra = {
@@ -51,7 +46,13 @@ def add(
     session: Session = Depends(get_session),
 ) -> Response:
     items = Items()
-    items.add(**data.dict(), owner_id=user_id)
+    items.add(
+        owner_id=user_id,
+        title=data.title,
+        description=data.description,
+        starting_price_amount=data.starting_price.amount,
+        starting_price_currency=data.starting_price.currency,
+    )
     session.commit()
     return Response(status_code=204)
 
