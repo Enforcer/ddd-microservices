@@ -17,5 +17,5 @@ class NegotiationFactory(factory.Factory):
     def create(cls, **kwargs: Any) -> Negotiation:
         instance = super().create(**kwargs)
         repo = NegotiationsRepository()
-        repo.save(instance)
+        repo.insert(instance)
         return instance
