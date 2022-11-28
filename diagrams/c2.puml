@@ -1,0 +1,19 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(buyer, "Buyer")
+Person(seller, "Seller")
+
+Container(availability, "Availability", "Python / PostgreSQL", "Answers whether an item is available.\nAllows making reservations.")
+
+Container(catalog, "Catalog", "Python / MongoDB", "Read model for items, has search.")
+
+Container(chat, "Chat", "Python / Asyncio", "Provides basic chat features - exchanging messages.")
+
+Container(items, "Items", "Python / PostgreSQL", "Items management for Seller")
+
+Container(likes, "Likes", "Python / PostgreSQL", "Manages likes")
+
+Container(negotiations, "Negotiations", "Python / MongoDB", "Manages negotiations between seller and buyer.")
+
+@enduml
