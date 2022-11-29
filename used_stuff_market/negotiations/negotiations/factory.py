@@ -25,11 +25,13 @@ def build_negotiation(
     if price <= 0:
         raise InvalidPrice
 
+    waits_for_decision_of = seller_id if user_id == buyer_id else buyer_id
+
     return Negotiation(
         item_id=item_id,
         buyer_id=buyer_id,
         seller_id=seller_id,
         price=price,
         currency=currency,
-        waits_for_decision_of=seller_id,
+        waits_for_decision_of=waits_for_decision_of,
     )
