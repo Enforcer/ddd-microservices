@@ -37,13 +37,16 @@ def start_negotiation(
     item_id: int, payload: NewNegotiation, user_id: int = Header()
 ) -> Response:
     repository = NegotiationsRepository()
+    waits_for_decision_of = (
+        payload.seller_id if user_id == payload.buyer_id else payload.buyer_id
+    )
     negotiation = Negotiation(
         item_id=item_id,
         buyer_id=payload.buyer_id,
         seller_id=payload.seller_id,
         price=payload.price,
         currency=payload.currency,
-        waits_for_decision_of=payload.seller_id,
+        waits_for_decision_of=waits_for_decision_of,
     )
     repository.insert(negotiation)
     return Response(status_code=204)
