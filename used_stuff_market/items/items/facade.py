@@ -1,7 +1,9 @@
 from decimal import Decimal
 from typing import TypedDict
 
+import mqlib
 from items.item import Item
+from items.queues import item_added
 from items.repository import ItemsRepository
 
 
@@ -14,10 +16,13 @@ class ItemDto(TypedDict):
     id: int
     title: str
     description: str
-    starting_price: MoneyDto
+    price: MoneyDto
 
 
 class Items:
+    class NoSuchItem(Exception):
+        pass
+
     def add(
         self,
         owner_id: int,
@@ -30,11 +35,23 @@ class Items:
             owner_id=owner_id,
             title=title,
             description=description,
-            starting_price_amount=starting_price_amount,
-            starting_price_currency=starting_price_currency,
+            price_amount=starting_price_amount,
+            price_currency=starting_price_currency,
         )
         repository = ItemsRepository()
         repository.add(item)
+        mqlib.publish(
+            item_added,
+            message={
+                "item_id": item.id,
+                "title": item.title,
+                "description": item.description,
+                "price": {
+                    "amount": item.price_amount,
+                    "currency": item.price_amount,
+                },
+            },
+        )
 
     def get_items(self, owner_id: int) -> list[ItemDto]:
         repository = ItemsRepository()
@@ -44,9 +61,9 @@ class Items:
                 id=item.id,
                 title=item.title,
                 description=item.description,
-                starting_price=MoneyDto(
-                    amount=self._format_amount(item.starting_price_amount),
-                    currency=item.starting_price_currency,
+                price=MoneyDto(
+                    amount=self._format_amount(item.price_amount),
+                    currency=item.price_currency,
                 ),
             )
             for item in items
@@ -56,3 +73,23 @@ class Items:
         decimal_points = 2
         formatter = "{0:." + str(decimal_points) + "f}"
         return formatter.format(amount)
+
+    def update(
+        self,
+        owner_id: int,
+        item_id: int,
+        title: str,
+        description: str,
+        price_amount: Decimal,
+        price_currency: str,
+    ) -> None:
+        repository = ItemsRepository()
+        try:
+            item = repository.get(owner_id=owner_id, item_id=item_id)
+        except ItemsRepository.NotFound:
+            raise self.NoSuchItem
+        else:
+            item.title = title
+            item.description = description
+            item.price_amount = price_amount
+            item.price_currency = price_currency

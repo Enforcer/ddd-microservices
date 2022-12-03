@@ -17,7 +17,7 @@ def test_added_item_is_available(client: TestClient) -> None:
         json={
             "title": "Cool socks",
             "description": "A very nice item",
-            "starting_price": {
+            "price": {
                 "amount": 10.99,
                 "currency": "USD",
             },
@@ -33,8 +33,52 @@ def test_added_item_is_available(client: TestClient) -> None:
             "id": 1,
             "title": "Cool socks",
             "description": "A very nice item",
-            "starting_price": {
+            "price": {
                 "amount": "10.99",
+                "currency": "USD",
+            },
+        },
+    ]
+
+
+def test_update_of_item_is_applied(client: TestClient) -> None:
+    post_response = client.post(
+        "/items",
+        json={
+            "title": "Really nice pants",
+            "description": "Pink pants, a vivid colour!",
+            "price": {
+                "amount": 19.99,
+                "currency": "USD",
+            },
+        },
+        headers={"user-id": "2"},
+    )
+    assert post_response.status_code == 204
+
+    post_response = client.put(
+        "/items/2",
+        json={
+            "title": "JOKE THESE WERE JEANS",
+            "description": "Plz buy",
+            "price": {
+                "amount": 9.99,
+                "currency": "USD",
+            },
+        },
+        headers={"user-id": "2"},
+    )
+    assert post_response.status_code == 204
+
+    get_response = client.get("/items", headers={"user-id": "2"})
+    assert get_response.status_code == 200
+    assert get_response.json() == [
+        {
+            "id": 2,
+            "title": "JOKE THESE WERE JEANS",
+            "description": "Plz buy",
+            "price": {
+                "amount": "9.99",
                 "currency": "USD",
             },
         },
