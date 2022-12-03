@@ -3,7 +3,10 @@ from typing import Iterator
 
 import alembic
 import alembic.config
+import httpx
 import pytest
+
+import mqlib
 from items.db import engine, session_factory
 from sqlalchemy import create_engine, text
 
@@ -26,3 +29,17 @@ def test_db() -> Iterator[None]:
     alembic.command.upgrade(config=config, revision="head")
     yield
     test_db_engine.dispose()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def test_broker() -> Iterator[None]:
+    mqlib.BROKER_URL = f"amqp://guest:guest@{mqlib.HOST}/tests"
+    response = httpx.put(
+        f"http://{mqlib.HOST}:15672/api/vhosts/tests", auth=("guest", "guest")
+    )
+    response.raise_for_status()
+    yield
+    response = httpx.delete(
+        f"http://{mqlib.HOST}:15672/api/vhosts/tests", auth=("guest", "guest")
+    )
+    response.raise_for_status()

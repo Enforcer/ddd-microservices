@@ -9,5 +9,5 @@ class Item:
     owner_id: int
     title: str
     description: str
-    starting_price_amount: Decimal
-    starting_price_currency: str
+    price_amount: Decimal
+    price_currency: str
