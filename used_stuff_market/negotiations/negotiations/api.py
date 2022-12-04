@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from container_or_host import host_for_dependency
 from fastapi import FastAPI, Header, Response
 from fastapi.responses import JSONResponse
 from negotiations.application import use_cases
@@ -8,6 +9,7 @@ from negotiations.domain.currency import Currency
 from negotiations.domain.money import Money
 from negotiations.domain.negotiation import Negotiation
 from negotiations.infrastructure import db
+from negotiations.infrastructure.availability_client import AvailabilityClient
 from negotiations.infrastructure.mongo_repository import MongoDbNegotiationsRepository
 from negotiations.queues import setup_queues
 from pydantic import BaseModel
@@ -141,8 +143,11 @@ class NegotiationToBreakOff(BaseModel):
 def accept(
     item_id: int, buyer_id: int, seller_id: int, user_id: int = Header()
 ) -> Response:
+    availability_host = host_for_dependency(addres_for_docker="availability")
+    base_url = f"http://{availability_host}:8300"
     use_case = use_cases.AcceptingNegotiation(
-        repository=MongoDbNegotiationsRepository(database=db.get())
+        repository=MongoDbNegotiationsRepository(database=db.get()),
+        availability=AvailabilityClient(base_url=base_url),
     )
     dto = use_case.Dto(
         accepting_party_id=user_id,
