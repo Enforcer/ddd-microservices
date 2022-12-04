@@ -15,8 +15,9 @@ def client() -> Iterator[TestClient]:
 
 
 def test_item_from_event_is_searchable(client: TestClient) -> None:
+    item_id = 10_000
     body = {
-        "item_id": 10_000,
+        "item_id": item_id,
         "title": "Spam",
         "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
         "price": {
@@ -26,6 +27,15 @@ def test_item_from_event_is_searchable(client: TestClient) -> None:
         "version": 1,
     }
     consumer.on_item_change(body=body, message=Mock(spec_spet=mqlib.Message))
+    consumer.on_item_liked(
+        body={"item_id": item_id}, message=Mock(spec_spet=mqlib.Message)
+    )
+    consumer.on_item_liked(
+        body={"item_id": item_id}, message=Mock(spec_spet=mqlib.Message)
+    )
+    consumer.on_item_unliked(
+        body={"item_id": item_id}, message=Mock(spec_spet=mqlib.Message)
+    )
 
     term = "consectetur"
     response = client.get(f"/search/{term}")
@@ -33,10 +43,11 @@ def test_item_from_event_is_searchable(client: TestClient) -> None:
     assert response.status_code == 200
     assert response.json() == [
         {
-            "item_id": 10000,
+            "item_id": item_id,
             "title": "Spam",
             "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
             "price": {"amount": 9.99, "currency": "USD"},
+            "likes": 1,
         }
     ]
 
@@ -70,5 +81,6 @@ def test_another_message_with_same_version_is_ignored(client: TestClient) -> Non
                 "amount": 1.99,
                 "currency": "USD",
             },
+            "likes": 0,
         }
     ]

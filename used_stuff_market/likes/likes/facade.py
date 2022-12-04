@@ -1,9 +1,8 @@
 import mqlib
 from likes.db import ScopedSession
 from likes.models import Like
-from sqlalchemy.exc import IntegrityError
-
 from likes.queues import item_liked, item_unliked
+from sqlalchemy.exc import IntegrityError
 
 
 class Likes:
@@ -21,9 +20,11 @@ class Likes:
 
     def unlike(self, liker: int, item_id: int) -> None:
         session = ScopedSession()
-        removed = session.query(Like).filter(
-            Like.item_id == item_id, Like.liker == str(liker)
-        ).delete()
+        removed = (
+            session.query(Like)
+            .filter(Like.item_id == item_id, Like.liker == str(liker))
+            .delete()
+        )
         if removed > 0:
             mqlib.publish(item_unliked, {"item_id": item_id})
 
