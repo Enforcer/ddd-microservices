@@ -1,10 +1,13 @@
 from dataclasses import dataclass
 
-from negotiations.money import Money
-from negotiations.repository import NegotiationsRepository
+from negotiations.application.repository import NegotiationsRepository
+from negotiations.domain.money import Money
 
 
 class CounterOfferingNegotiation:
+    def __init__(self, repository: NegotiationsRepository) -> None:
+        self._repository = repository
+
     @dataclass
     class Dto:
         counter_offering_party_id: int
@@ -14,12 +17,11 @@ class CounterOfferingNegotiation:
         new_price: Money
 
     def run(self, dto: Dto) -> None:
-        repository = NegotiationsRepository()
-        negotiation = repository.get(
+        negotiation = self._repository.get(
             buyer_id=dto.buyer_id, seller_id=dto.seller_id, item_id=dto.item_id
         )
         negotiation.counteroffer(
             counter_offering_party_id=dto.counter_offering_party_id,
             price=dto.new_price,
         )
-        repository.update(negotiation)
+        self._repository.update(negotiation)

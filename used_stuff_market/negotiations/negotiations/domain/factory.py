@@ -1,7 +1,5 @@
-from decimal import Decimal
-
-from negotiations.money import Money
-from negotiations.negotiation import Negotiation
+from negotiations.domain.money import Money
+from negotiations.domain.negotiation import Negotiation
 
 
 class NotABuyerOrSeller(Exception):

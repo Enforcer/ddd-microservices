@@ -2,11 +2,14 @@ from dataclasses import dataclass
 from uuid import UUID
 
 from container_or_host import host_for_dependency
+from negotiations.application.repository import NegotiationsRepository
 from negotiations.availability_client import AvailabilityClient
-from negotiations.repository import NegotiationsRepository
 
 
 class AcceptingNegotiation:
+    def __init__(self, repository: NegotiationsRepository) -> None:
+        self._repository = repository
+
     @dataclass
     class Dto:
         accepting_party_id: int
@@ -15,12 +18,11 @@ class AcceptingNegotiation:
         item_id: int
 
     def run(self, dto: Dto) -> None:
-        repository = NegotiationsRepository()
-        negotiation = repository.get(
+        negotiation = self._repository.get(
             buyer_id=dto.buyer_id, seller_id=dto.seller_id, item_id=dto.item_id
         )
         negotiation.accept(accepting_party_id=dto.accepting_party_id)
-        repository.update(negotiation)
+        self._repository.update(negotiation)
         availability_host = host_for_dependency(addres_for_docker="availability")
         availability_client = AvailabilityClient(
             base_url=f"http://{availability_host}:8300"

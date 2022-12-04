@@ -1,12 +1,14 @@
 import pytest
-from negotiations.negotiation import Negotiation
-from negotiations.repository import NegotiationsRepository
+from negotiations.application.repository import NegotiationsRepository
+from negotiations.domain.negotiation import Negotiation
+from negotiations.infrastructure import db
+from negotiations.infrastructure.mongo_repository import MongoDbNegotiationsRepository
 from tests.factories import NegotiationFactory
 
 
 @pytest.fixture()
 def repo() -> NegotiationsRepository:
-    return NegotiationsRepository()
+    return MongoDbNegotiationsRepository(database=db.get())
 
 
 @pytest.fixture()

@@ -1,11 +1,14 @@
 from dataclasses import dataclass
 
-from negotiations import factory
-from negotiations.money import Money
-from negotiations.repository import NegotiationsRepository
+from negotiations.application.repository import NegotiationsRepository
+from negotiations.domain import factory
+from negotiations.domain.money import Money
 
 
 class StartingNegotiation:
+    def __init__(self, repository: NegotiationsRepository) -> None:
+        self._repository = repository
+
     @dataclass
     class Dto:
         accepting_party_id: int
@@ -15,7 +18,6 @@ class StartingNegotiation:
         starting_price: Money
 
     def run(self, dto: Dto) -> None:
-        repository = NegotiationsRepository()
         negotiation = factory.build_negotiation(
             user_id=dto.accepting_party_id,
             item_id=dto.item_id,
@@ -23,4 +25,4 @@ class StartingNegotiation:
             buyer_id=dto.buyer_id,
             price=dto.starting_price,
         )
-        repository.insert(negotiation)
+        self._repository.insert(negotiation)

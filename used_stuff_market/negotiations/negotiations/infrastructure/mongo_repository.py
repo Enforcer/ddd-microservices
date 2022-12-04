@@ -1,20 +1,18 @@
 import json
 from typing import ClassVar
 
-from negotiations import db
-from negotiations.negotiation import Negotiation
+from negotiations.application.repository import NegotiationsRepository
+from negotiations.domain.negotiation import Negotiation
 from pymongo.collection import Collection
+from pymongo.database import Database
 from pymongo.errors import DuplicateKeyError
 
 
-class NegotiationsRepository:
+class MongoDbNegotiationsRepository(NegotiationsRepository):
     COLLECTION_NAME: ClassVar = "negotiations"
 
-    class NotFound(Exception):
-        pass
-
-    class AlreadyExists(Exception):
-        pass
+    def __init__(self, database: Database) -> None:
+        self._db = database
 
     def insert(self, negotiation: Negotiation) -> None:
         as_json = json.loads(negotiation.json())
@@ -50,4 +48,4 @@ class NegotiationsRepository:
             raise self.NotFound
 
     def _collection(self) -> Collection:
-        return getattr(db.get(), self.COLLECTION_NAME)
+        return getattr(self._db, self.COLLECTION_NAME)

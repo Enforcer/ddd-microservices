@@ -2,9 +2,10 @@ from decimal import Decimal
 from typing import Any
 
 import factory
-from negotiations.money import Money
-from negotiations.negotiation import Negotiation
-from negotiations.repository import NegotiationsRepository
+from negotiations.domain.money import Money
+from negotiations.domain.negotiation import Negotiation
+from negotiations.infrastructure import db
+from negotiations.infrastructure.mongo_repository import MongoDbNegotiationsRepository
 
 
 class NegotiationFactory(factory.Factory):
@@ -22,6 +23,6 @@ class NegotiationFactory(factory.Factory):
     @classmethod
     def create(cls, **kwargs: Any) -> Negotiation:
         instance = super().create(**kwargs)
-        repo = NegotiationsRepository()
+        repo = MongoDbNegotiationsRepository(db.get())
         repo.insert(instance)
         return instance
