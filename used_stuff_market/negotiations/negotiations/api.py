@@ -7,13 +7,12 @@ from negotiations.application.use_cases import (
     AcceptingNegotiation,
     BreakingOffNegotiation,
     CounterOfferingNegotiation,
-    GettingNegotiation,
     StartingNegotiation,
 )
 from negotiations.domain import exceptions
 from negotiations.domain.currency import Currency
 from negotiations.domain.money import Money
-from negotiations.domain.negotiation import Negotiation
+from negotiations.infrastructure.negotiation_query import NegotiationQuery
 from negotiations.main import deps
 from negotiations.queues import setup_queues
 from pydantic import BaseModel
@@ -95,22 +94,19 @@ def get(
     buyer_id: int,
     seller_id: int,
     user_id: int = Header(),
-    use_case: GettingNegotiation = deps.depends(GettingNegotiation),
-) -> Negotiation | Response:
-    dto = use_cases.GettingNegotiation.Dto(
-        requesting_party_id=user_id,
-        seller_id=seller_id,
-        buyer_id=buyer_id,
-        item_id=item_id,
-    )
+    query: NegotiationQuery = deps.depends(NegotiationQuery),
+) -> dict | Response:
     try:
-        result = use_case.run(dto)
-    except use_case.RequestedByNonParticipant:
+        return query.run(
+            requesting_party_id=user_id,
+            seller_id=seller_id,
+            buyer_id=buyer_id,
+            item_id=item_id,
+        )
+    except query.RequestedByNonParticipant:
         return Response(status_code=403)
-    except use_case.NegotiationNoLongerAvailable:
+    except query.NotFound:
         return Response(status_code=404)
-
-    return result
 
 
 @app.post("/items/{item_id}/negotiations/counteroffer")
