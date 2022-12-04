@@ -1,5 +1,5 @@
-from negotiations import exceptions
-from negotiations.money import Money
+from negotiations.domain import exceptions
+from negotiations.domain.money import Money
 from pydantic import BaseModel
 
 

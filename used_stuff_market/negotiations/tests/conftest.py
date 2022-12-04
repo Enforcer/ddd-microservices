@@ -3,7 +3,7 @@ from typing import Iterator
 import httpx
 import mqlib
 import pytest
-from negotiations import db, migrations
+from negotiations.infrastructure import db, migrations
 
 
 @pytest.fixture(scope="session", autouse=True)

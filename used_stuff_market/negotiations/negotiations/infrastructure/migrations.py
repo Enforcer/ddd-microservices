@@ -1,6 +1,5 @@
 import pymongo
-from negotiations import db
-from pymongo.errors import DuplicateKeyError
+from negotiations.infrastructure import db
 
 
 def migrate() -> None:
