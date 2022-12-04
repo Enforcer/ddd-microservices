@@ -6,11 +6,11 @@ from negotiations.application.repository import NegotiationsRepository
 from negotiations.infrastructure import db
 from negotiations.infrastructure.availability_client import AvailabilityClient
 from negotiations.infrastructure.mongo_repository import MongoDbNegotiationsRepository
+from pymongo.database import Database
 
 container = Container()
-container[NegotiationsRepository] = lambda: MongoDbNegotiationsRepository(  # type: ignore
-    database=db.get()
-)
+container[Database] = lambda: db.get()
+container[NegotiationsRepository] = MongoDbNegotiationsRepository  # type: ignore
 
 
 def availability_factory() -> AvailabilityClient:
