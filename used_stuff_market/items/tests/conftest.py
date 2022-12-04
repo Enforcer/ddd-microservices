@@ -4,9 +4,8 @@ from typing import Iterator
 import alembic
 import alembic.config
 import httpx
-import pytest
-
 import mqlib
+import pytest
 from items.db import engine, session_factory
 from sqlalchemy import create_engine, text
 
