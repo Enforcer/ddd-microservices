@@ -1,12 +1,11 @@
 from typing import Iterator
 
+import mqlib
 import pytest
 from fastapi.testclient import TestClient
-from mockito import verify, when, verifyNoMoreInteractions
-
-import mqlib
 from likes.api import app
 from likes.queues import item_liked, item_unliked
+from mockito import verify, verifyNoMoreInteractions, when
 
 
 @pytest.fixture()
@@ -23,7 +22,9 @@ def test_like_can_be_given_and_taken_away(client: TestClient) -> None:
 
     user_id = 2
     with when(mqlib).publish(...):
-        response = client.post(f"/items/{item_id}/likes", headers={"user-id": str(user_id)})
+        response = client.post(
+            f"/items/{item_id}/likes", headers={"user-id": str(user_id)}
+        )
         assert response.status_code == 201
         verify(mqlib, times=1).publish(item_liked, {"item_id": item_id})
 
