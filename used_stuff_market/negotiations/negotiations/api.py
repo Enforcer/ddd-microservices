@@ -1,16 +1,20 @@
 from decimal import Decimal
 
-from container_or_host import host_for_dependency
 from fastapi import FastAPI, Header, Response
 from fastapi.responses import JSONResponse
 from negotiations.application import use_cases
+from negotiations.application.use_cases import (
+    AcceptingNegotiation,
+    BreakingOffNegotiation,
+    CounterOfferingNegotiation,
+    GettingNegotiation,
+    StartingNegotiation,
+)
 from negotiations.domain import exceptions
 from negotiations.domain.currency import Currency
 from negotiations.domain.money import Money
 from negotiations.domain.negotiation import Negotiation
-from negotiations.infrastructure import db
-from negotiations.infrastructure.availability_client import AvailabilityClient
-from negotiations.infrastructure.mongo_repository import MongoDbNegotiationsRepository
+from negotiations.main import deps
 from negotiations.queues import setup_queues
 from pydantic import BaseModel
 
@@ -49,11 +53,11 @@ class NewNegotiation(BaseModel):
 
 @app.post("/items/{item_id}/negotiations")
 def start_negotiation(
-    item_id: int, payload: NewNegotiation, user_id: int = Header()
+    item_id: int,
+    payload: NewNegotiation,
+    user_id: int = Header(),
+    use_case: StartingNegotiation = deps.depends(StartingNegotiation),
 ) -> Response:
-    use_case = use_cases.StartingNegotiation(
-        repository=MongoDbNegotiationsRepository(database=db.get())
-    )
     dto = use_cases.StartingNegotiation.Dto(
         accepting_party_id=user_id,
         item_id=item_id,
@@ -87,11 +91,12 @@ class CounterOffer(BaseModel):
 
 @app.get("/items/{item_id}/negotiations")
 def get(
-    item_id: int, buyer_id: int, seller_id: int, user_id: int = Header()
+    item_id: int,
+    buyer_id: int,
+    seller_id: int,
+    user_id: int = Header(),
+    use_case: GettingNegotiation = deps.depends(GettingNegotiation),
 ) -> Negotiation | Response:
-    use_case = use_cases.GettingNegotiation(
-        repository=MongoDbNegotiationsRepository(database=db.get())
-    )
     dto = use_cases.GettingNegotiation.Dto(
         requesting_party_id=user_id,
         seller_id=seller_id,
@@ -110,11 +115,11 @@ def get(
 
 @app.post("/items/{item_id}/negotiations/counteroffer")
 def counteroffer(
-    item_id: int, payload: CounterOffer, user_id: int = Header()
+    item_id: int,
+    payload: CounterOffer,
+    user_id: int = Header(),
+    use_case: CounterOfferingNegotiation = deps.depends(CounterOfferingNegotiation),
 ) -> Response:
-    use_case = use_cases.CounterOfferingNegotiation(
-        repository=MongoDbNegotiationsRepository(database=db.get())
-    )
     dto = use_cases.CounterOfferingNegotiation.Dto(
         counter_offering_party_id=user_id,
         buyer_id=payload.buyer_id,
@@ -141,14 +146,12 @@ class NegotiationToBreakOff(BaseModel):
 
 @app.post("/items/{item_id}/negotiations/accept")
 def accept(
-    item_id: int, buyer_id: int, seller_id: int, user_id: int = Header()
+    item_id: int,
+    buyer_id: int,
+    seller_id: int,
+    user_id: int = Header(),
+    use_case: AcceptingNegotiation = deps.depends(AcceptingNegotiation),
 ) -> Response:
-    availability_host = host_for_dependency(addres_for_docker="availability")
-    base_url = f"http://{availability_host}:8300"
-    use_case = use_cases.AcceptingNegotiation(
-        repository=MongoDbNegotiationsRepository(database=db.get()),
-        availability=AvailabilityClient(base_url=base_url),
-    )
     dto = use_case.Dto(
         accepting_party_id=user_id,
         seller_id=seller_id,
@@ -167,11 +170,12 @@ def accept(
 
 @app.delete("/items/{item_id}/negotiations")
 def break_off(
-    item_id: int, buyer_id: int, seller_id: int, user_id: int = Header()
+    item_id: int,
+    buyer_id: int,
+    seller_id: int,
+    user_id: int = Header(),
+    use_case: BreakingOffNegotiation = deps.depends(BreakingOffNegotiation),
 ) -> Response:
-    use_case = use_cases.BreakingOffNegotiation(
-        repository=MongoDbNegotiationsRepository(database=db.get())
-    )
     dto = use_case.Dto(
         breaking_off_party_id=user_id,
         seller_id=seller_id,
