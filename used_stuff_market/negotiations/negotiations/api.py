@@ -1,12 +1,12 @@
 from decimal import Decimal
 
 from fastapi import FastAPI, Header, Response
-from negotiations import factory
+from fastapi.responses import JSONResponse
+from negotiations import exceptions, use_cases
 from negotiations.currency import Currency
 from negotiations.money import Money
 from negotiations.negotiation import Negotiation
 from negotiations.queues import setup_queues
-from negotiations.repository import NegotiationsRepository
 from pydantic import BaseModel
 
 app = FastAPI()
@@ -15,6 +15,14 @@ app = FastAPI()
 @app.on_event("startup")
 def initialize() -> None:
     setup_queues()
+
+
+@app.exception_handler(exceptions.DomainException)
+async def http_exception_handler(_request, exc: Exception):
+    return JSONResponse(
+        {"error_message": "You can't do this", "code": type(exc).__name__},
+        status_code=422,
+    )
 
 
 class NewNegotiation(BaseModel):
@@ -38,18 +46,18 @@ class NewNegotiation(BaseModel):
 def start_negotiation(
     item_id: int, payload: NewNegotiation, user_id: int = Header()
 ) -> Response:
-    repository = NegotiationsRepository()
-    negotiation = factory.build_negotiation(
-        user_id=user_id,
+    use_case = use_cases.StartingNegotiation()
+    dto = use_cases.StartingNegotiation.Dto(
+        accepting_party_id=user_id,
         item_id=item_id,
         seller_id=payload.seller_id,
         buyer_id=payload.buyer_id,
-        price=Money(
+        starting_price=Money(
             amount=payload.price,
             currency=payload.currency,
         ),
     )
-    repository.insert(negotiation)
+    use_case.run(dto)
     return Response(status_code=204)
 
 
@@ -74,28 +82,36 @@ class CounterOffer(BaseModel):
 def get(
     item_id: int, buyer_id: int, seller_id: int, user_id: int = Header()
 ) -> Negotiation | Response:
-    repository = NegotiationsRepository()
-    negotiation = repository.get(
-        buyer_id=buyer_id, seller_id=seller_id, item_id=item_id
+    use_case = use_cases.GettingNegotiation()
+    dto = use_cases.GettingNegotiation.Dto(
+        requesting_party_id=user_id,
+        seller_id=seller_id,
+        buyer_id=buyer_id,
+        item_id=item_id,
     )
-    if negotiation.broken_off:
+    try:
+        result = use_case.run(dto)
+    except use_case.RequestedByNonParticipant:
+        return Response(status_code=403)
+    except use_case.NegotiationNoLongerAvailable:
         return Response(status_code=404)
 
-    return negotiation
+    return result
 
 
 @app.post("/items/{item_id}/negotiations/counteroffer")
 def counteroffer(
     item_id: int, payload: CounterOffer, user_id: int = Header()
 ) -> Response:
-    repository = NegotiationsRepository()
-    negotiation = repository.get(
-        buyer_id=payload.buyer_id, seller_id=payload.seller_id, item_id=item_id
+    use_case = use_cases.CounterOfferingNegotiation()
+    dto = use_cases.CounterOfferingNegotiation.Dto(
+        counter_offering_party_id=user_id,
+        buyer_id=payload.buyer_id,
+        seller_id=payload.seller_id,
+        item_id=item_id,
+        new_price=Money(amount=payload.price, currency=payload.currency),
     )
-    negotiation.counteroffer(
-        user_id=user_id, price=Money(amount=payload.price, currency=payload.currency)
-    )
-    repository.update(negotiation)
+    use_case.run(dto)
     return Response(status_code=204)
 
 
@@ -116,18 +132,20 @@ class NegotiationToBreakOff(BaseModel):
 def accept(
     item_id: int, buyer_id: int, seller_id: int, user_id: int = Header()
 ) -> Response:
-    repository = NegotiationsRepository()
-    negotiation = repository.get(
-        buyer_id=buyer_id, seller_id=seller_id, item_id=item_id
+    use_case = use_cases.AcceptingNegotiation()
+    dto = use_case.Dto(
+        accepting_party_id=user_id,
+        seller_id=seller_id,
+        buyer_id=buyer_id,
+        item_id=item_id,
     )
     try:
-        negotiation.accept(user_id=user_id)
-    except Negotiation.NegotiationConcluded:
+        use_case.run(dto)
+    except exceptions.NegotiationConcluded:
         return Response(status_code=422)
-    except Negotiation.OnlyWaitingSideCanAccept:
+    except exceptions.OnlyWaitingSideCanAccept:
         return Response(status_code=403)
     else:
-        repository.update(negotiation)
         return Response(status_code=204)
 
 
@@ -135,14 +153,16 @@ def accept(
 def break_off(
     item_id: int, buyer_id: int, seller_id: int, user_id: int = Header()
 ) -> Response:
-    repository = NegotiationsRepository()
-    negotiation = repository.get(
-        buyer_id=buyer_id, seller_id=seller_id, item_id=item_id
+    use_case = use_cases.BreakingOffNegotiation()
+    dto = use_case.Dto(
+        breaking_off_party_id=user_id,
+        seller_id=seller_id,
+        buyer_id=buyer_id,
+        item_id=item_id,
     )
     try:
-        negotiation.break_off()
-    except Negotiation.NegotiationConcluded:
+        use_case.run(dto)
+    except exceptions.NegotiationConcluded:
         return Response(status_code=422)
     else:
-        repository.update(negotiation=negotiation)
         return Response(status_code=204)
