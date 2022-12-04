@@ -14,15 +14,27 @@ def client() -> Iterator[TestClient]:
         yield client
 
 
-@pytest.mark.skip("Not implemented")
-def test_item_saved_from_event_is_searchable(client: TestClient) -> None:
-    body: dict = {}
-    consumer.on_name_me(body=body, message=Mock(spec_spet=mqlib.Message))
+def test_item_from_event_is_searchable(client: TestClient) -> None:
+    body = {
+        "item_id": 10_000,
+        "title": "Spam",
+        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "price": {
+            "amount": 9.99,
+            "currency": "USD",
+        },
+    }
+    consumer.on_item_change(body=body, message=Mock(spec_spet=mqlib.Message))
 
-    term = "search term"
+    term = "consectetur"
     response = client.get(f"/search/{term}")
 
     assert response.status_code == 200
-    results = response.json()
-    assert len(results) == 1
-    assert response.json() == [...]
+    assert response.json() == [
+        {
+            "item_id": 10000,
+            "title": "Spam",
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+            "price": {"amount": 9.99, "currency": "USD"},
+        }
+    ]
