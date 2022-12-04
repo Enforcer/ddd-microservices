@@ -3,7 +3,7 @@ from typing import TypedDict
 
 import mqlib
 from items.item import Item
-from items.queues import item_added
+from items.queues import name_me
 from items.repository import ItemsRepository
 
 
@@ -41,7 +41,7 @@ class Items:
         repository = ItemsRepository()
         repository.add(item)
         mqlib.publish(
-            item_added,
+            name_me,
             message={
                 "item_id": item.id,
                 "title": item.title,
