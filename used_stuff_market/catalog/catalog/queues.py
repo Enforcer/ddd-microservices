@@ -1,8 +1,8 @@
 import mqlib
 from kombu import Queue
 
-item_added = Queue("items.fact.item_added", durable=True)
+item_cdc = Queue("items.cdc.item", durable=True)
 
 
 def setup_queues():
-    mqlib.declare(item_added)
+    mqlib.declare(item_cdc)

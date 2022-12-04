@@ -1,10 +1,9 @@
 from typing import Iterator
 
-import mqlib.testing
 import pytest
 from fastapi.testclient import TestClient
 from items.api import app
-from items.queues import item_added
+from items.queues import item_cdc
 
 
 @pytest.fixture()
