@@ -1,5 +1,4 @@
-from decimal import Decimal
-
+from negotiations import exceptions
 from negotiations.money import Money
 from pydantic import BaseModel
 
@@ -13,33 +12,26 @@ class Negotiation(BaseModel):
     broken_off: bool = False
     accepted: bool = False
 
-    class NegotiationConcluded(Exception):
-        pass
-
-    class OnlyWaitingSideCanAccept(Exception):
-        pass
-
-    class OnlyWaitingSideCanCounteroffer(Exception):
-        pass
-
-    def break_off(self) -> None:
+    def break_off(self, breaking_off_party_id: int) -> None:
+        if breaking_off_party_id not in (self.seller_id, self.buyer_id):
+            raise exceptions.OnlyParticipantsCanBreakOff
         if self.broken_off or self.accepted:
-            raise self.NegotiationConcluded
+            raise exceptions.NegotiationConcluded
         self.broken_off = True
 
-    def accept(self, user_id: int) -> None:
+    def accept(self, accepting_party_id: int) -> None:
         if self.broken_off or self.accepted:
-            raise self.NegotiationConcluded
-        if user_id != self.waits_for_decision_of:
-            raise self.OnlyWaitingSideCanAccept
+            raise exceptions.NegotiationConcluded
+        if accepting_party_id != self.waits_for_decision_of:
+            raise exceptions.OnlyWaitingSideCanAccept
         self.accepted = True
 
-    def counteroffer(self, user_id: int, price: Money) -> None:
+    def counteroffer(self, counter_offering_party_id: int, price: Money) -> None:
         if self.broken_off or self.accepted:
-            raise self.NegotiationConcluded
+            raise exceptions.NegotiationConcluded
 
-        if user_id != self.waits_for_decision_of:
-            raise self.OnlyWaitingSideCanCounteroffer
+        if counter_offering_party_id != self.waits_for_decision_of:
+            raise exceptions.OnlyWaitingSideCanCounteroffer
 
         if self.waits_for_decision_of == self.seller_id:
             self.waits_for_decision_of = self.buyer_id
