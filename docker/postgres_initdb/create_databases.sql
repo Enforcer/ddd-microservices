@@ -1,2 +1,3 @@
 CREATE DATABASE availability;
 CREATE DATABASE items;
+CREATE DATABASE likes;
