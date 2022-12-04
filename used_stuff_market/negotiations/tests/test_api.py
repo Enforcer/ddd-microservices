@@ -1,8 +1,9 @@
-from typing import Iterator
+from typing import Any, Iterator
 
 import pytest
 from fastapi.testclient import TestClient
 from negotiations.api import app
+from negotiations.availability_client import AvailabilityClient
 
 
 @pytest.fixture()
@@ -119,10 +120,11 @@ def test_non_participant_cant_break_off_negotiation(client: TestClient) -> None:
     assert break_off_response.status_code >= 400
 
 
-def test_cant_accept_same_negotiation_twice(client: TestClient) -> None:
+def test_cant_accept_same_negotiation_twice(client: TestClient, when: Any) -> None:
     buyer_id = next(user_ids)
     seller_id = next(user_ids)
     item_id = next(item_ids)
+    when(AvailabilityClient).lock(...).thenReturn(None)
 
     create_response = client.post(
         f"/items/{item_id}/negotiations",
@@ -222,10 +224,11 @@ def test_cant_break_off_same_negotiation_twice(client: TestClient) -> None:
     assert another_break_off_response.status_code == 422
 
 
-def test_buyer_can_accept_after_counteroffer(client: TestClient) -> None:
+def test_buyer_can_accept_after_counteroffer(client: TestClient, when: Any) -> None:
     buyer_id = next(user_ids)
     seller_id = next(user_ids)
     item_id = next(item_ids)
+    when(AvailabilityClient).lock(...).thenReturn(None)
 
     create_response = client.post(
         f"/items/{item_id}/negotiations",
@@ -304,10 +307,12 @@ def test_seller_cannot_accept_after_theirs_counteroffer(client: TestClient) -> N
 
 def test_buyer_can_accept_after_counteroffer_from_them_and_then_buyer(
     client: TestClient,
+    when: Any,
 ) -> None:
     buyer_id = next(user_ids)
     seller_id = next(user_ids)
     item_id = next(item_ids)
+    when(AvailabilityClient).lock(...).thenReturn(None)
 
     create_response = client.post(
         f"/items/{item_id}/negotiations",
