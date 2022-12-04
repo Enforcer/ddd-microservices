@@ -99,7 +99,7 @@ class Worker:
     shutdown_event: threading.Event
 
 
-def new_consume(consumers: dict[Queue, ConsumptionCallback]) -> None:
+def consume(consumers: dict[Queue, ConsumptionCallback]) -> None:
     logging.basicConfig()
 
     workers: list[Worker] = []
@@ -163,15 +163,5 @@ def consumer_thread_target(
                     conn.drain_events(timeout=1)
                 except TimeoutError:
                     continue
-                except KeyboardInterrupt:
-                    return
-
-
-def consume(callback: ConsumptionCallback, *queues: Queue) -> None:
-    with PoolFactory.get().acquire(block=True) as conn:
-        with conn.Consumer(list(queues), callbacks=[callback]):
-            while True:
-                try:
-                    conn.drain_events()
                 except KeyboardInterrupt:
                     return
