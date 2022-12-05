@@ -50,7 +50,6 @@ class Items:
                     "amount": item.price_amount,
                     "currency": item.price_amount,
                 },
-                "version": item.version_id,
             },
         )
 
