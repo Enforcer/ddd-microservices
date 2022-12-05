@@ -1,8 +1,10 @@
 from typing import Iterator
 
+import mqlib.testing
 import pytest
 from fastapi.testclient import TestClient
 from items.api import app
+from items.queues import item_added
 
 
 @pytest.fixture()
@@ -74,9 +76,14 @@ def test_update_of_item_is_applied(client: TestClient) -> None:
         headers={"user-id": "2"},
     )
     assert post_response.status_code == 204
+    get_response = client.get("/items", headers={"user-id": "2"})
+    assert get_response.status_code == 200
+    items = get_response.json()
+    assert len(items) == 1
+    item_id = items[0]["id"]
 
     post_response = client.put(
-        "/items/2",
+        f"/items/{item_id}",
         json={
             "title": "JOKE THESE WERE JEANS",
             "description": "Plz buy",
@@ -93,7 +100,7 @@ def test_update_of_item_is_applied(client: TestClient) -> None:
     assert get_response.status_code == 200
     assert get_response.json() == [
         {
-            "id": 2,
+            "id": item_id,
             "title": "JOKE THESE WERE JEANS",
             "description": "Plz buy",
             "price": {
