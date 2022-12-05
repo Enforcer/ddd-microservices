@@ -1,0 +1,25 @@
+@startuml
+
+scale 2
+
+participant "Facade or \nApplication Service or\n Use Case Interactor" as handler
+participant Database
+participant "Event Broker\ne.g. RabbitMQ" as broker
+
+
+group Transaction within handling request
+handler -> Database: Begin transaction
+handler -> handler: Executing logic
+handler -> Database: Save event to outbox table
+handler -> Database: Commit transaction
+end
+
+group Outbox Processor
+outbox -> Database: Begin transaction
+outbox -> Database: Get events to publish
+outbox -> broker: Publish event
+outbox -> Database: Remove events to publish / mark as sent
+outbox -> Database: Commit transaction
+end
+
+@enduml

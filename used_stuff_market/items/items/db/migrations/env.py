@@ -11,6 +11,7 @@ if config.config_file_name is not None:
 
 engine = session_factory.kw["bind"]
 
+from items.models import *  # for discovery
 from items.repository import items as items_table  # for discovery
 
 target_metadata = metadata
