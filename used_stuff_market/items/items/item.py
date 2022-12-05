@@ -11,3 +11,4 @@ class Item:
     description: str
     price_amount: Decimal
     price_currency: str
+    version_id: int = 1
