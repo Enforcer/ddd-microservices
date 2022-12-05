@@ -24,7 +24,7 @@ def test_item_from_event_is_searchable(client: TestClient) -> None:
             "currency": "USD",
         },
     }
-    consumer.on_item_change(body=body, message=Mock(spec_spet=mqlib.Message))
+    consumer.on_item_added(body=body, message=Mock(spec_spet=mqlib.Message))
 
     term = "consectetur"
     response = client.get(f"/search/{term}")
