@@ -41,6 +41,25 @@ def test_added_item_is_available(client: TestClient) -> None:
     ]
 
 
+@pytest.mark.skip("Not implemented")
+def test_message_about_new_item_is_sent(client: TestClient) -> None:
+    post_response = client.post(
+        "/items",
+        json={
+            "title": "Lorem Ipsum Dolor Sit Amet",
+            "description": "Consectetur adipiscing elit.",
+            "price": {
+                "amount": 6.99,
+                "currency": "USD",
+            },
+        },
+        headers={"user-id": "3"},
+    )
+    assert post_response.status_code == 204
+
+    # ...?
+
+
 def test_update_of_item_is_applied(client: TestClient) -> None:
     post_response = client.post(
         "/items",
