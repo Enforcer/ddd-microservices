@@ -7,6 +7,12 @@ from catalog.queues import item_cdc, setup_queues
 
 def on_item_change(body: dict, message: mqlib.Message) -> None:
     logging.info("Item CDC: %r", body)
+    item_id = body["item_id"]
+    item = dao.get(item_id)
+    if item is not None and item["version"] >= body["version"]:
+        logging.warning("Duplicate detected!")
+        return
+
     dao.upsert(item_id=body["item_id"], data=body)
 
 
