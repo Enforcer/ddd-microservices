@@ -1,7 +1,9 @@
 from typing import Iterator
 
+import mqlib.testing
 import pytest
 from fastapi.testclient import TestClient
+from items import outbox_processor
 from items.api import app
 from items.queues import item_cdc
 
@@ -108,3 +110,23 @@ def test_update_of_item_is_applied(client: TestClient) -> None:
             },
         },
     ]
+
+
+def test_message_about_item_is_sent(client: TestClient) -> None:
+    post_response = client.post(
+        "/items",
+        json={
+            "title": "Cool socks",
+            "description": "A very nice item",
+            "price": {
+                "amount": 10.99,
+                "currency": "USD",
+            },
+        },
+        headers={"user-id": "1"},
+    )
+    assert post_response.status_code == 204
+    outbox_processor.run_once()
+
+    message = mqlib.testing.next_message(item_cdc)
+    assert message
