@@ -28,13 +28,13 @@ def test_item_from_event_is_searchable(client: TestClient) -> None:
     }
     consumer.on_item_change(body=body, message=Mock(spec_spet=mqlib.Message))
     consumer.on_item_liked(
-        body={"item_id": item_id}, message=Mock(spec_spet=mqlib.Message)
+        body={"item_id": item_id, "liker_id": 1}, message=Mock(spec_spet=mqlib.Message)
     )
     consumer.on_item_liked(
-        body={"item_id": item_id}, message=Mock(spec_spet=mqlib.Message)
+        body={"item_id": item_id, "liker_id": 2}, message=Mock(spec_spet=mqlib.Message)
     )
     consumer.on_item_unliked(
-        body={"item_id": item_id}, message=Mock(spec_spet=mqlib.Message)
+        body={"item_id": item_id, "liker_id": 1}, message=Mock(spec_spet=mqlib.Message)
     )
 
     term = "consectetur"
@@ -82,5 +82,44 @@ def test_another_message_with_same_version_is_ignored(client: TestClient) -> Non
                 "currency": "USD",
             },
             "likes": 0,
+        }
+    ]
+
+
+def test_duplicated_messages_about_likes_are_ignored(client: TestClient) -> None:
+    item_id = 30_000
+    body = {
+        "item_id": item_id,
+        "title": "Wooooo",
+        "description": "Broken bones & broken glass.",
+        "price": {
+            "amount": 9.99,
+            "currency": "USD",
+        },
+        "version": 1,
+    }
+    consumer.on_item_change(body=body, message=Mock(spec_spet=mqlib.Message))
+    for _ in range(3):
+        consumer.on_item_liked(
+            body={"item_id": item_id, "liker_id": 1},
+            message=Mock(spec_spet=mqlib.Message),
+        )
+    for _ in range(2):
+        consumer.on_item_liked(
+            body={"item_id": item_id, "liker_id": 2},
+            message=Mock(spec_spet=mqlib.Message),
+        )
+
+    term = "bones"
+    response = client.get(f"/search/{term}")
+
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "item_id": item_id,
+            "title": "Wooooo",
+            "description": "Broken bones & broken glass.",
+            "price": {"amount": 9.99, "currency": "USD"},
+            "likes": 2,
         }
     ]
