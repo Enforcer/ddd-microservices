@@ -23,6 +23,7 @@ def test_item_from_event_is_searchable(client: TestClient) -> None:
             "amount": 9.99,
             "currency": "USD",
         },
+        "version": 1,
     }
     consumer.on_item_change(body=body, message=Mock(spec_spet=mqlib.Message))
 
@@ -36,5 +37,38 @@ def test_item_from_event_is_searchable(client: TestClient) -> None:
             "title": "Spam",
             "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
             "price": {"amount": 9.99, "currency": "USD"},
+        }
+    ]
+
+
+def test_another_message_with_same_version_is_ignored(client: TestClient) -> None:
+    body = {
+        "item_id": 20_000,
+        "title": "Another message",
+        "description": "Another description.",
+        "price": {
+            "amount": 1.99,
+            "currency": "USD",
+        },
+        "version": 1,
+    }
+    consumer.on_item_change(body=body, message=Mock(spec_spet=mqlib.Message))
+    another_message = body.copy()
+    another_message["title"] = "Oupsie!"
+    consumer.on_item_change(body=body, message=Mock(spec_spet=mqlib.Message))
+
+    term = "description"
+    response = client.get(f"/search/{term}")
+
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "item_id": 20_000,
+            "title": "Another message",
+            "description": "Another description.",
+            "price": {
+                "amount": 1.99,
+                "currency": "USD",
+            },
         }
     ]
