@@ -73,6 +73,16 @@ services:
       PYTHONPATH: /usr/src/libraries:/usr/src/app
     command: bash -c 'alembic upgrade head && uvicorn items.api:app --host 0.0.0.0 --port 8100 --reload'
 
+  items-outbox-processor:
+    image: micro-usf
+    hostname: docker-usf-items-outbox-processor
+    volumes:
+      - ./used_stuff_market/items:/usr/src/app
+      - ./used_stuff_market/libraries:/usr/src/libraries
+    environment:
+      PYTHONPATH: /usr/src/libraries:/usr/src/app
+    command: watchfiles "python items/outbox_processor.py" /usr/src/app
+
   negotiations:
     image: micro-usf
     hostname: docker-usf-negotiations
