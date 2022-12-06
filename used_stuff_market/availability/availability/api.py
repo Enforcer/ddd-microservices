@@ -1,5 +1,6 @@
 from uuid import UUID
 
+import tracing
 from availability.facade import Availability
 from fastapi import FastAPI, Response
 from pydantic import BaseModel
@@ -9,7 +10,9 @@ app = FastAPI()
 
 @app.on_event("startup")
 def initialize() -> None:
-    pass
+    from availability.db import engine
+
+    tracing.setup_tracer("Availability-Api", app=app, engine=engine)
 
 
 class ResourcePayload(BaseModel):
