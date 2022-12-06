@@ -97,6 +97,16 @@ services:
       PYTHONPATH: /usr/src/libraries:/usr/src/app
     command: bash -c 'alembic upgrade head && uvicorn availability.api:app --host 0.0.0.0 --port 8300 --reload'
 
+  availability-consumer:
+    image: micro-usf
+    hostname: docker-usf-availability-consumer
+    volumes:
+      - ./used_stuff_market/availability:/usr/src/app
+      - ./used_stuff_market/libraries:/usr/src/libraries
+    environment:
+      PYTHONPATH: /usr/src/libraries:/usr/src/app
+    command: watchfiles "python availability/consumer.py" /usr/src/app
+
   catalog:
     image: micro-usf
     hostname: docker-usf-catalog
