@@ -1,5 +1,6 @@
 from typing import Iterator
 
+import tracing
 from fastapi import Depends, FastAPI, Header, Response
 from fastapi.responses import JSONResponse
 
@@ -14,6 +15,9 @@ app = FastAPI()
 
 @app.on_event("startup")
 def initialize() -> None:
+    from likes.db import engine
+
+    tracing.setup_tracer("Likes-Api", app=app, engine=engine)
     setup_queues()
     tracing.setup_tracer(service_name="Likes-Api", app=app, engine=engine)
 

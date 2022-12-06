@@ -27,6 +27,7 @@ def on_item_added(body: dict, message: mqlib.Message) -> None:
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     setup_queues()
+    tracing.setup_tracer("Availability-Consumer")
     mqlib.consume(
         {
             item_added: on_item_added,
