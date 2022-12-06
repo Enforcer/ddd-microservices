@@ -16,7 +16,7 @@ class Likes:
             session.rollback()
             return
         else:
-            mqlib.publish(item_liked, {"item_id": item_id})
+            mqlib.publish(item_liked, {"item_id": item_id, "liker_id": liker})
 
     def unlike(self, liker: int, item_id: int) -> None:
         session = ScopedSession()
@@ -26,7 +26,7 @@ class Likes:
             .delete()
         )
         if removed > 0:
-            mqlib.publish(item_unliked, {"item_id": item_id})
+            mqlib.publish(item_unliked, {"item_id": item_id, "liker_id": liker})
 
     def count(self, item_id: int) -> int:
         session = ScopedSession()
