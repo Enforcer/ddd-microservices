@@ -7,6 +7,11 @@ from pydantic import BaseModel
 app = FastAPI()
 
 
+@app.on_event("startup")
+def initialize() -> None:
+    pass
+
+
 class ResourcePayload(BaseModel):
     resource_id: int
     owner_id: UUID

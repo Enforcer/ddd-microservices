@@ -3,7 +3,7 @@ from typing import TypedDict
 
 import mqlib
 from items.item import Item
-from items.queues import item_cdc
+from items.queues import item_added, item_cdc
 from items.repository import ItemsRepository
 
 
@@ -51,6 +51,13 @@ class Items:
                     "currency": item.price_amount,
                 },
                 "version": item.version_id,
+            },
+        )
+        mqlib.publish(
+            item_added,
+            message={
+                "item_id": item.id,
+                "owner_id": owner_id,
             },
         )
 
