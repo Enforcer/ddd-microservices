@@ -1,6 +1,7 @@
 from decimal import Decimal
 from typing import Iterator
 
+import tracing
 from fastapi import Depends, FastAPI, Header, Response
 from items.db import db_session
 from items.facade import Items
@@ -19,7 +20,10 @@ app = FastAPI(dependencies=[Depends(get_session)])
 
 @app.on_event("startup")
 def initialize() -> None:
+    from items.db import engine
+
     setup_queues()
+    tracing.setup_tracer("Items-Api", app=app, engine=engine)
 
 
 class Price(BaseModel):
