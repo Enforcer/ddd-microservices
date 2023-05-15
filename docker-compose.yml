@@ -6,7 +6,7 @@ services:
       dockerfile: docker/Dockerfile
 
   postgresdb:
-    image: postgres:14
+    image: postgres:15.3
     environment:
       - POSTGRES_PASSWORD=usf
       - POSTGRES_USER=usf
@@ -29,8 +29,18 @@ services:
     ports:
       - "9411:9411"
 
+  prometheus:
+    image: bitnami/prometheus:2.44.0
+    ports:
+      - "9090:9090"
+        
+  grafana:
+    image: grafana/grafana:9.5.2
+    ports:
+      - "3000:3000"
+
   mongodb:
-    image: mongo:5.0.14
+    image: mongo:6.0.5
     ports:
       - "27017:27017"
     environment:

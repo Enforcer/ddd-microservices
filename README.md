@@ -18,7 +18,7 @@ NOTE: This is a convenience for the workshop. Normally, each microservice would 
 
 ## Pull the rest of images
 ```bash
-docker compose pull mongodb redis postgresdb rabbitmq mongo-express zipkin
+docker compose pull mongodb redis postgresdb rabbitmq mongo-express zipkin prometheus grafana
 ```
 
 # Start everything up

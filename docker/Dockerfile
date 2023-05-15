@@ -1,4 +1,4 @@
-FROM python:3.11.0
+FROM python:3.11.3
 
 WORKDIR /usr/src/app
 COPY requirements/app.txt .
