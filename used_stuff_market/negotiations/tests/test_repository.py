@@ -67,3 +67,26 @@ def test_raises_exception_when_negotiation_wasnt_saved_before(
             buyer_id=negotiation.buyer_id,
             seller_id=negotiation.seller_id,
         )
+
+
+def test_updating_negotiation_with_wrong_version_raises_exception(
+    repo: NegotiationsRepository,
+    negotiation: Negotiation,
+) -> None:
+    repo.insert(negotiation)
+
+    one_instance = repo.get(
+        item_id=negotiation.item_id,
+        buyer_id=negotiation.buyer_id,
+        seller_id=negotiation.seller_id,
+    )
+    second_instance = repo.get(
+        item_id=negotiation.item_id,
+        buyer_id=negotiation.buyer_id,
+        seller_id=negotiation.seller_id,
+    )
+
+    repo.update(one_instance)
+
+    with pytest.raises(NegotiationsRepository.OptimisticLockFailed):
+        repo.update(second_instance)

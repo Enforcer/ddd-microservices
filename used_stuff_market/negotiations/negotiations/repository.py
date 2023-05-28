@@ -16,6 +16,9 @@ class NegotiationsRepository:
     class AlreadyExists(Exception):
         pass
 
+    class OptimisticLockFailed(Exception):
+        pass
+
     def insert(self, negotiation: Negotiation) -> None:
         as_json = json.loads(negotiation.json())
         try:
