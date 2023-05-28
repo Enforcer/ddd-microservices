@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from fastapi import FastAPI, Header, Response
+from fastapi.responses import JSONResponse
 from negotiations import factory
 from negotiations.currency import Currency
 from negotiations.money import Money
@@ -74,10 +75,21 @@ class CounterOffer(BaseModel):
         }
 
 
+class NegotiationOut(BaseModel):
+    item_id: int
+    seller_id: int
+    buyer_id: int
+    price: Money
+    waits_for_decision_of: int
+    broken_off: bool
+    accepted: bool
+    canceled: bool
+
+
 @app.get("/items/{item_id}/negotiations")
 def get(
     item_id: int, buyer_id: int, seller_id: int, user_id: int = Header()
-) -> Negotiation | Response:
+) -> Response | NegotiationOut:
     repository = NegotiationsRepository()
     negotiation = repository.get(
         buyer_id=buyer_id, seller_id=seller_id, item_id=item_id
@@ -85,7 +97,7 @@ def get(
     if negotiation.broken_off:
         return Response(status_code=404)
 
-    return negotiation
+    return NegotiationOut.parse_obj(negotiation)
 
 
 @app.post("/items/{item_id}/negotiations/counteroffer")

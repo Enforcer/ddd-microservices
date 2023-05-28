@@ -27,17 +27,30 @@ class NegotiationsRepository:
             raise self.AlreadyExists
 
     def update(self, negotiation: Negotiation) -> None:
-        as_json = json.loads(negotiation.json())
+        negotiation_with_bumped_version = negotiation.copy(
+            update={"version": negotiation.version + 1}
+        )
+        as_json = json.loads(negotiation_with_bumped_version.json())
         filter_cond = {
             "item_id": negotiation.item_id,
             "buyer_id": negotiation.buyer_id,
             "seller_id": negotiation.seller_id,
+            "version": negotiation.version,
         }
         result = self._collection().replace_one(
             filter=filter_cond,
             replacement=as_json,
         )
         if result.matched_count != 1:
+            negotiation_exists = bool(
+                self.get(
+                    negotiation.item_id,
+                    negotiation.buyer_id,
+                    negotiation.seller_id
+                )
+            )
+            if negotiation_exists:
+                raise self.OptimisticLockFailed
             raise self.NotFound
 
     def get(self, item_id: int, buyer_id: int, seller_id: int) -> Negotiation:

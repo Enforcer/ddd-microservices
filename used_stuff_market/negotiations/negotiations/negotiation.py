@@ -1,7 +1,5 @@
-from decimal import Decimal
-
 from negotiations.money import Money
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Negotiation(BaseModel):
@@ -13,6 +11,7 @@ class Negotiation(BaseModel):
     broken_off: bool = False
     accepted: bool = False
     canceled: bool = False
+    version: int = 1
 
     class NegotiationConcluded(Exception):
         pass
