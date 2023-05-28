@@ -49,5 +49,15 @@ class NegotiationsRepository:
         else:
             raise self.NotFound
 
+    def get_pending_negotiations_for_item(self, item_id: int) -> list[Negotiation]:
+        filter_cond = {
+            "item_id": item_id,
+            "canceled": False,
+            "broken_off": False,
+            "accepted": False,
+        }
+        raw_negotiations = self._collection().find(filter_cond)
+        return [Negotiation(**raw) for raw in raw_negotiations]
+
     def _collection(self) -> Collection:
         return getattr(db.get(), self.COLLECTION_NAME)

@@ -50,6 +50,7 @@ def test_started_negotiation_is_returned(client: TestClient) -> None:
         },
         "broken_off": False,
         "accepted": False,
+        "canceled": False,
         "waits_for_decision_of": seller_id,
     }
 
@@ -326,3 +327,69 @@ def test_buyer_can_accept_after_counteroffer_from_them_and_then_buyer(
         headers={"user-id": str(seller_id)},
     )
     assert accept_response.status_code == 204, accept_response.json()
+
+
+def test_accepting_negotiation_cancells_all_others_for_the_same_item(
+    client: TestClient,
+) -> None:
+    # start one negotiation for one item and client
+    first_buyer_id = next(user_ids)
+    second_buyer_id = next(user_ids)
+    seller_id = next(user_ids)
+    item_id = next(item_ids)
+
+    first_create_response = client.post(
+        f"/items/{item_id}/negotiations",
+        json={
+            "seller_id": seller_id,
+            "buyer_id": first_buyer_id,
+            "price": "1.99",
+            "currency": "USD",
+        },
+        headers={"user-id": str(first_buyer_id)},
+    )
+    assert first_create_response.status_code == 204, first_create_response.json()
+    second_create_response = client.post(
+        f"/items/{item_id}/negotiations",
+        json={
+            "seller_id": seller_id,
+            "buyer_id": second_buyer_id,
+            "price": "1.99",
+            "currency": "USD",
+        },
+        headers={"user-id": str(second_buyer_id)},
+    )
+    assert second_create_response.status_code == 204, second_create_response.json()
+
+    accept_response = client.post(
+        f"/items/{item_id}/negotiations/accept",
+        params={
+            "seller_id": seller_id,
+            "buyer_id": first_buyer_id,
+        },
+        headers={"user-id": str(seller_id)},
+    )
+    assert accept_response.status_code == 204
+
+    get_response = client.get(
+        f"/items/{item_id}/negotiations",
+        params={
+            "seller_id": seller_id,
+            "buyer_id": second_buyer_id,
+        },
+        headers={"user-id": str(seller_id)},
+    )
+    assert get_response.status_code == 200
+    assert get_response.json() == {
+        "item_id": item_id,
+        "seller_id": seller_id,
+        "buyer_id": second_buyer_id,
+        "price": {
+            "amount": 1.99,
+            "currency": "USD",
+        },
+        "broken_off": False,
+        "accepted": False,
+        "canceled": True,
+        "waits_for_decision_of": seller_id,
+    }

@@ -7,6 +7,9 @@ from negotiations.money import Money
 from negotiations.negotiation import Negotiation
 from negotiations.queues import setup_queues
 from negotiations.repository import NegotiationsRepository
+from negotiations.event_bus import event_bus
+from negotiations.listeners import on_negotiation_accepted
+from negotiations.events import NegotiationAccepted
 from pydantic import BaseModel
 
 app = FastAPI()
@@ -15,6 +18,7 @@ app = FastAPI()
 @app.on_event("startup")
 def initialize() -> None:
     setup_queues()
+    event_bus.subscribe(on_negotiation_accepted)
 
 
 class NewNegotiation(BaseModel):
@@ -128,6 +132,7 @@ def accept(
         return Response(status_code=403)
     else:
         repository.update(negotiation)
+        event_bus.post(NegotiationAccepted(item_id=item_id))
         return Response(status_code=204)
 
 
