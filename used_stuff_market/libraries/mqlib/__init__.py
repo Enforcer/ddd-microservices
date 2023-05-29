@@ -143,9 +143,14 @@ def callback(
 ) -> None:
     context = propagate.extract(carrier=message.headers)
     with tracer.start_as_current_span(name="mqlib.consume", context=context):
-        consumption_callback(body, message)
-        if not message.acknowledged:
-            message.ack()
+        try:
+            consumption_callback(body, message)
+        except Exception:
+            logging.exception("Failed to process message: %r", body)
+            message.reject()
+        else:
+            if not message.acknowledged:
+                message.ack()
 
 
 def consumer_thread_target(
