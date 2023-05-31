@@ -107,6 +107,16 @@ services:
       PYTHONPATH: /usr/src/libraries:/usr/src/app
     command: watchfiles "python availability/consumer.py" /usr/src/app
 
+  orchestrator:
+    image: micro-usf
+    hostname: docker-usf-orchestrator
+    volumes:
+      - ./used_stuff_market/orchestrator:/usr/src/app
+      - ./used_stuff_market/libraries:/usr/src/libraries
+    environment:
+      PYTHONPATH: /usr/src/libraries:/usr/src/app
+    command: bash -c 'python orchestrator/migrations.py && watchfiles "python orchestrator/consumer.py" /usr/src/app'
+
   catalog:
     image: micro-usf
     hostname: docker-usf-catalog
