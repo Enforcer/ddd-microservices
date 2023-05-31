@@ -1,7 +1,7 @@
 import json
 from typing import ClassVar
 
-from negotiations import db
+from orchestrator import db
 from orchestrator.process_manager import AddingNewItemProcessManager
 from pymongo.collection import Collection
 from pymongo.errors import DuplicateKeyError
