@@ -2,6 +2,7 @@ from uuid import UUID
 
 import tracing
 from availability.facade import Availability
+from availability.queues import setup_queues
 from fastapi import FastAPI, Response
 from pydantic import BaseModel
 
@@ -10,6 +11,7 @@ app = FastAPI()
 
 @app.on_event("startup")
 def initialize() -> None:
+    setup_queues()
     from availability.db import engine
 
     tracing.setup_tracer("Availability-Api", app=app, engine=engine)

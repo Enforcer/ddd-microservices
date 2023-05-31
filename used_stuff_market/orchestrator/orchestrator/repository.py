@@ -45,5 +45,17 @@ class AddingNewItemProcessManagerRepository:
         else:
             raise self.NotFound
 
+    def get_or_create(self, item_id: int) -> AddingNewItemProcessManager:
+        try:
+            pm = self.get(item_id)
+        except self.NotFound:
+            pm = AddingNewItemProcessManager(item_id=item_id)
+            try:
+                self.insert(pm)
+            except self.AlreadyExists:
+                pm = self.get(item_id)
+
+        return pm
+
     def _collection(self) -> Collection:
         return getattr(db.get(), self.COLLECTION_NAME)

@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta
 from uuid import UUID
 
+import mqlib
+from availability.queues import resource_registered
 from availability.db import ScopedSession
 from availability.models import Resource
 
@@ -22,6 +24,12 @@ class Availability:
             )
         )
         session.flush()
+        mqlib.publish(
+            resource_registered,
+            message={
+                "resource_id": resource_id,
+            }
+        )
 
     def unregister(self, resource_id: int) -> None:
         session = ScopedSession()

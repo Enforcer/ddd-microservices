@@ -1,8 +1,9 @@
 import mqlib
 from kombu import Queue
 
-item_added = Queue("items.fact.item_added", durable=True)
-
+resource_registered = Queue("availability.fact.resource_registered", durable=True)
+register_resource = Queue("availability.cmd.register_resource", durable=True)
 
 def setup_queues():
-    mqlib.declare(item_added)
+    mqlib.declare(resource_registered)
+    mqlib.declare(register_resource)

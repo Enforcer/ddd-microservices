@@ -3,11 +3,11 @@ import logging
 import mqlib
 import tracing
 from catalog import dao
-from catalog.queues import item_cdc, item_liked, item_unliked, setup_queues
+from catalog.queues import item_liked, item_unliked, add_catalog_item, setup_queues
 
 
-def on_item_change(body: dict, message: mqlib.Message) -> None:
-    logging.info("Item CDC: %r", body)
+def on_add_catalog_item(body: dict, message: mqlib.Message) -> None:
+    logging.info("Add catalog item: %r", body)
     item_id = body["item_id"]
     data = dao.get(item_id) or {"likes": []}
     if data.get("version", 0) != 0 and data["version"] >= body["version"]:
