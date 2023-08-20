@@ -48,7 +48,7 @@ def test_started_negotiation_is_returned(client: TestClient) -> None:
         "currency": "USD",
         "broken_off": False,
         "accepted": False,
-        "waits_for_decision_of": seller_id,
+        "waits_for_decision_of": buyer_id,
     }
 
 
@@ -112,7 +112,7 @@ def test_cant_accept_same_negotiation_twice(client: TestClient) -> None:
             "seller_id": seller_id,
             "buyer_id": buyer_id,
         },
-        headers={"user-id": str(seller_id)},
+        headers={"user-id": str(buyer_id)},
     )
     assert accept_response.status_code == 204, accept_response.json()
 
@@ -122,7 +122,7 @@ def test_cant_accept_same_negotiation_twice(client: TestClient) -> None:
             "seller_id": seller_id,
             "buyer_id": buyer_id,
         },
-        headers={"user-id": str(seller_id)},
+        headers={"user-id": str(buyer_id)},
     )
     assert another_accept_response.status_code == 422, accept_response.text
 
