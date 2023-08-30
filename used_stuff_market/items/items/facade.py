@@ -42,7 +42,12 @@ class Items:
         repository.add(item)
         mqlib.publish(
             item_cdc,
-            message={},
+            message={
+                "item_id": item.id,
+                "version": item.version_id,
+                "title": item.title,
+                "description": item.description,
+            },
         )
         mqlib.publish(
             item_added,
