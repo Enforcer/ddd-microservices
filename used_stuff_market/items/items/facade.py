@@ -42,26 +42,15 @@ class Items:
         repository.add(item)
         mqlib.publish(
             item_cdc,
-            message={},
-        )
-        mqlib.publish(
-            item_added,
             message={
                 "item_id": item.id,
-                "owner_id": owner_id,
-            },
-        )
-        mqlib.publish(
-            item_added,
-            message={
-                "item_id": item.id,
-                "owner_id": owner_id,
-            },
-        )
-        mqlib.publish(
-            item_added,
-            message={
-                "item_id": item.id,
+                "title": item.title,
+                "description": item.description,
+                "price": {
+                    "amount": self._format_amount(item.price_amount),
+                    "currency": item.price_currency,
+                },
+                "version": item.version_id,
                 "owner_id": owner_id,
             },
         )

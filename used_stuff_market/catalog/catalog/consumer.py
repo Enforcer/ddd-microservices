@@ -38,6 +38,8 @@ if __name__ == "__main__":
     tracing.setup_tracer("Catalog-Consumer")
     mqlib.consume(
         {
-            item_added: on_name_me,
+            item_liked: on_item_liked,
+            item_unliked: on_item_unliked,
+            add_catalog_item: on_add_catalog_item,
         }
     )
