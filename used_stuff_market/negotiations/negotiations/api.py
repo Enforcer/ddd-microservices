@@ -2,9 +2,12 @@ from decimal import Decimal
 
 from fastapi import FastAPI, Header, Response
 from negotiations.currency import Currency
+from negotiations.negotiation import Negotiation
 from negotiations.queues import setup_queues
 from pydantic import BaseModel
 from starlette.responses import JSONResponse
+
+from negotiations.repository import NegotiationsRepository
 
 app = FastAPI()
 
@@ -35,6 +38,9 @@ class NewNegotiation(BaseModel):
 def start_negotiation(
     item_id: int, payload: NewNegotiation, user_id: int = Header()
 ) -> Response:
+    repository = NegotiationsRepository()
+    negotiation = Negotiation(...)  # TODO
+    repository.insert(negotiation)
     return Response(status_code=204)
 
 
@@ -59,7 +65,9 @@ class CounterOffer(BaseModel):
 def get(
     item_id: int, buyer_id: int, seller_id: int, user_id: int = Header()
 ) -> Response:
-    return JSONResponse(status_code=200, content={})
+    repository = NegotiationsRepository()
+    negotiation = repository.get(item_id, buyer_id, seller_id)
+    return JSONResponse(status_code=200, content=negotiation)
 
 
 @app.post("/items/{item_id}/negotiations/counteroffer")
@@ -86,6 +94,10 @@ class NegotiationToBreakOff(BaseModel):
 def accept(
     item_id: int, buyer_id: int, seller_id: int, user_id: int = Header()
 ) -> Response:
+    repository = NegotiationsRepository()
+    negotiation = repository.get(item_id, buyer_id, seller_id)
+    negotiation.accept(user_id)
+    repository.update(negotiation)
     return Response(status_code=204)
 
 
