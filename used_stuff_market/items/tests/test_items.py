@@ -1,7 +1,9 @@
-from typing import Iterator
+from typing import Iterator, Any
 
 import pytest
 from fastapi.testclient import TestClient
+
+import mqlib.testing
 from items.api import app
 from items.queues import item_cdc
 
@@ -10,6 +12,14 @@ from items.queues import item_cdc
 def client() -> Iterator[TestClient]:
     with TestClient(app) as test_client:
         yield test_client
+
+
+class AnyInt(int):
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, int)
+
+    def __repr__(self) -> str:
+        return "AnyInt()"
 
 
 def test_added_item_is_available(client: TestClient) -> None:
@@ -42,8 +52,9 @@ def test_added_item_is_available(client: TestClient) -> None:
     ]
 
 
-@pytest.mark.skip("Not implemented")
-def test_message_about_new_item_is_sent(client: TestClient) -> None:
+def test_message_about_item_change_is_sent(client: TestClient) -> None:
+    mqlib.testing.purge(item_cdc)
+
     post_response = client.post(
         "/items",
         json={
@@ -58,7 +69,17 @@ def test_message_about_new_item_is_sent(client: TestClient) -> None:
     )
     assert post_response.status_code == 204
 
-    # ...?
+    message = mqlib.testing.next_message(item_cdc, timeout=1)
+    assert message == {
+        "item_id": AnyInt(),
+        "title": "Lorem Ipsum Dolor Sit Amet",
+        "description": "Consectetur adipiscing elit.",
+        "price": {
+            "amount": 6.99,
+            "currency": "USD",
+        },
+        "version": 1,
+    }
 
 
 def test_update_of_item_is_applied(client: TestClient) -> None:
