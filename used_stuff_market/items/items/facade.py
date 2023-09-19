@@ -42,7 +42,15 @@ class Items:
         repository.add(item)
         mqlib.publish(
             item_added,
-            message={},
+            message={
+                "item_id": item.id,
+                "title": item.title,
+                "description": item.description,
+                "price": {
+                    "amount": item.price_amount,
+                    "currency": item.price_currency,
+                },
+            },
         )
 
     def get_items(self, owner_id: int) -> list[ItemDto]:

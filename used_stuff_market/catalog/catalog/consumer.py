@@ -15,6 +15,6 @@ if __name__ == "__main__":
     setup_queues()
     mqlib.consume(
         {
-            item_added: on_name_me,
+            item_added: on_item_added,
         }
     )
