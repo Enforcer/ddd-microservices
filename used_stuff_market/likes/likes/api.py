@@ -2,7 +2,9 @@ from typing import Iterator
 
 from fastapi import Depends, FastAPI, Header, Response
 from fastapi.responses import JSONResponse
-from likes.db import db_session
+
+import tracing
+from likes.db import db_session, engine
 from likes.facade import Likes
 from likes.queues import setup_queues
 from sqlalchemy.orm import Session
@@ -13,6 +15,7 @@ app = FastAPI()
 @app.on_event("startup")
 def initialize() -> None:
     setup_queues()
+    tracing.setup_tracer(service_name="Likes-Api", app=app, engine=engine)
 
 
 def get_session() -> Iterator[Session]:

@@ -47,6 +47,10 @@ class Items:
                 "version": item.version_id,
                 "title": item.title,
                 "description": item.description,
+                "price": {
+                    "amount": str(item.price_amount),
+                    "currency": item.price_currency,
+                },
             },
         )
         mqlib.publish(
@@ -102,11 +106,12 @@ class Items:
                 item_cdc,
                 message={
                     "item_id": item.id,
+                    "version": item.version_id,
                     "title": item.title,
                     "description": item.description,
                     "price": {
-                        "amount": item.price_amount,
-                        "currency": item.price_amount,
+                        "amount": str(item.price_amount),
+                        "currency": item.price_currency,
                     },
                 },
             )
