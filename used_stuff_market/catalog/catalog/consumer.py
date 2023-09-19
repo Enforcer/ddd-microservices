@@ -36,6 +36,8 @@ if __name__ == "__main__":
     setup_queues()
     mqlib.consume(
         {
-            item_added: on_name_me,
+            item_cdc: on_item_change,
+            item_liked: on_item_liked,
+            item_unliked: on_item_unliked,
         }
     )
