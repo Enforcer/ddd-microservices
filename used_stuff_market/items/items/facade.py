@@ -2,6 +2,7 @@ from decimal import Decimal
 from typing import TypedDict
 
 import mqlib
+from items.db import ScopedSession
 from items.item import Item
 from items.queues import item_cdc
 from items.repository import ItemsRepository
@@ -40,6 +41,9 @@ class Items:
         )
         repository = ItemsRepository()
         repository.add(item)
+        # TODO - use to save message to outbox
+        # session = ScopedSession()
+        # session.add(...)
         mqlib.publish(
             item_cdc,
             message={
