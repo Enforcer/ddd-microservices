@@ -39,5 +39,7 @@ if __name__ == "__main__":
     mqlib.consume(
         {
             item_cdc: on_item_change,
+            item_liked: on_item_liked,
+            item_unliked: on_item_unliked,
         }
     )
