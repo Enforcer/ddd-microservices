@@ -42,7 +42,16 @@ class Items:
         repository.add(item)
         mqlib.publish(
             item_cdc,
-            message={},
+            message={
+                "item_id": item.id,
+                "title": item.title,
+                "description": item.description,
+                "price": {
+                    "amount": float(item.price_amount),
+                    "currency": item.price_currency,
+                },
+                "version": item.version_id,
+            },
         )
 
     def get_items(self, owner_id: int) -> list[ItemDto]:
@@ -93,8 +102,9 @@ class Items:
                     "title": item.title,
                     "description": item.description,
                     "price": {
-                        "amount": item.price_amount,
-                        "currency": item.price_amount,
+                        "amount": float(item.price_amount),
+                        "currency": item.price_currency,
                     },
+                    "version": item.version_id,
                 },
             )
