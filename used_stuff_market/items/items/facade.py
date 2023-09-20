@@ -60,13 +60,6 @@ class Items:
                 "owner_id": owner_id,
             },
         )
-        mqlib.publish(
-            item_added,
-            message={
-                "item_id": item.id,
-                "owner_id": owner_id,
-            },
-        )
 
     def get_items(self, owner_id: int) -> list[ItemDto]:
         repository = ItemsRepository()
