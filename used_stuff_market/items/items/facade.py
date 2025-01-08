@@ -94,6 +94,7 @@ class Items:
             item.description = description
             item.price_amount = price_amount
             item.price_currency = price_currency
+            item.version_id += 1
 
             mqlib.publish(
                 item_cdc,
@@ -105,5 +106,6 @@ class Items:
                         "amount": item.price_amount,
                         "currency": item.price_amount,
                     },
+                    "version": item.version_id,
                 },
             )
