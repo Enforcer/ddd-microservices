@@ -6,10 +6,12 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "alembic>=1.16.5",
+    "container-or-host",
     "fastapi[all]>=0.118.0",
     "httpx>=0.28.1",
     "kombu>=5.5.4",
     "lagom>=2.7.7",
+    "mqlib",
     "opentelemetry-api>=1.37.0",
     "opentelemetry-exporter-otlp>=1.37.0",
     "opentelemetry-exporter-otlp-proto-grpc>=1.37.0",
@@ -39,3 +41,8 @@ dev = [
     "pytest-mockito>=0.0.4",
     "ruff>=0.13.2",
 ]
+
+[tool.uv.sources]
+mqlib = { path = "libs/mqlib", editable = true }
+container-or-host = { path = "libs/container_or_host", editable = true }
+

@@ -5,6 +5,7 @@ RUN groupadd --system --gid 999 ddd && useradd --system --gid 999 --uid 999 --cr
 ENV UV_TOOL_BIN_DIR=/usr/local/bin
 
 WORKDIR /usr/src/app
+COPY libs /usr/src/app/libs
 COPY pyproject.toml uv.lock .
 RUN uv sync --locked --no-install-project
 
