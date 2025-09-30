@@ -14,33 +14,63 @@ services:
       - "5432:5432"
 
   redis:
-    image: redis:6
+    image: redis:8
     ports:
       - "6379:6379"
 
   rabbitmq:
-    image: rabbitmq:3.11.2-management
+    image: rabbitmq:4-management
     ports:
+      - "5552:5552"
       - "5672:5672"
       - "15672:15672"
 
-  zipkin:
-    image: openzipkin/zipkin:2.23.19
+  tempo-init:
+    image: grafana/tempo:main-5165b89
+    user: root
+    entrypoint:
+      - "chown"
+      - "10001:10001"
+      - "/var/tempo"
+    volumes:
+      - ./services/tempo-data:/var/tempo
+
+  tempo:
+    image: grafana/tempo:main-5165b89
+    command: ["-config.file=/etc/tempo.yml"]
+    depends_on:
+      - tempo-init
+      - redis
+    volumes:
+      - ./services/tempo.yml:/etc/tempo.yml
+      - ./services/tempo-data:/var/tempo
     ports:
-      - "9411:9411"
+      - "3200:3200"
+      - "4317:4317"
 
   prometheus:
-    image: bitnami/prometheus:2.44.0
+    image: prom/prometheus:v3.6.0
     ports:
       - "9090:9090"
         
   grafana:
-    image: grafana/grafana:9.5.2
+    image: grafana/grafana:12.0.0
+    depends_on:
+      - prometheus
+      - tempo
+    volumes:
+      - ./services/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yaml
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+      - GF_FEATURE_TOGGLES_ENABLE=traceqlEditor metricsSummary
+      - GF_PLUGINS_PREINSTALL_SYNC=https://storage.googleapis.com/integration-artifacts/grafana-exploretraces-app/grafana-exploretraces-app-latest.zip;grafana-traces-app
     ports:
       - "3000:3000"
 
   mongodb:
-    image: mongo:6.0.5
+    image: mongo:8.0.14-noble
     ports:
       - "27017:27017"
     environment:
@@ -48,25 +78,14 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: usf
 
   mongo-express:
-    image: mongo-express:1.0.0-alpha.4
+    image: mongo-express:1.0.2-20-alpine3.19
     depends_on:
       - mongodb
     restart: unless-stopped
     ports:
       - "8081:8081"
     environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: usf
-      ME_CONFIG_MONGODB_ADMINPASSWORD: usf
+      ME_CONFIG_BASICAUTH_USERNAME: usf
+      ME_CONFIG_BASICAUTH_PASSWORD: usf
       ME_CONFIG_MONGODB_URL: mongodb://usf:usf@mongodb:27017/
 
-  items:
-    image: micro-usf
-    hostname: docker-usf-items
-    ports:
-      - "8100:8100"
-    volumes:
-      - ./used_stuff_market/items:/usr/src/items
-    working_dir: /usr/src/items
-    #environment:
-    #  PYTHONPATH: /usr/src/libraries:/usr/src/app
-    command: bash -c 'alembic upgrade head && uvicorn items.api:app --host 0.0.0.0 --port 8100 --reload'
