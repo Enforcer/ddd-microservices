@@ -1,0 +1,41 @@
+[project]
+name = "ddd-microservices"
+version = "0.1.0"
+description = "Python + DDD + microservices training"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "alembic>=1.16.5",
+    "fastapi[all]>=0.118.0",
+    "httpx>=0.28.1",
+    "kombu>=5.5.4",
+    "lagom>=2.7.7",
+    "opentelemetry-api>=1.37.0",
+    "opentelemetry-exporter-otlp>=1.37.0",
+    "opentelemetry-exporter-otlp-proto-grpc>=1.37.0",
+    "opentelemetry-instrumentation>=0.58b0",
+    "opentelemetry-instrumentation-fastapi>=0.58b0",
+    "opentelemetry-instrumentation-httpx>=0.58b0",
+    "opentelemetry-instrumentation-pymongo>=0.58b0",
+    "opentelemetry-instrumentation-sqlalchemy>=0.58b0",
+    "prometheus-client>=0.23.1",
+    "prometheus-fastapi-instrumentator>=7.1.0",
+    "psycopg2-binary>=2.9.10",
+    "pydantic-settings>=2.11.0",
+    "pymongo>=4.15.1",
+    "redis>=6.4.0",
+    "sqlalchemy>=2.0.43",
+    "tenacity>=9.1.2",
+    "watchfiles>=1.1.0",
+]
+
+[dependency-groups]
+dev = [
+    "factory-boy>=3.3.3",
+    "mockito>=1.5.4",
+    "mypy>=1.18.2",
+    "pytest>=8.4.2",
+    "pytest-cov>=7.0.0",
+    "pytest-mockito>=0.0.4",
+    "ruff>=0.13.2",
+]
