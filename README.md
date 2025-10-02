@@ -1,30 +1,24 @@
-# Set up
+# Setting up
 
 ## Prerequisites
 
-To work with the repo one needs to have:
-- docker (updated so `docker compose` is available)
-- favourite code editor
-- (optionally) Python 3.11 locally to work with code without containers
+- [docker](https://docs.docker.com/desktop/) or compatible tool (like [podman](https://podman.io/) or [colima](https://github.com/abiosoft/colima))
+- [uv](https://docs.astral.sh/uv/) and Python 3.13 for local work without containers
 
 ## Build base image
 
-First we build base image used for all the microservices.
+First we build base image used by all the microservices:
+
 ```bash
 docker compose build shell
 ```
 
-NOTE: This is a convenience for the workshop. Normally, each microservice would have separate image and dependencies.
+NOTE: This is a convenience for the workshop. Normally, each microservice would have a separate image and dependencies.
 
 ## Pull the rest of images
-```bash
-docker compose pull mongodb redis postgresdb rabbitmq mongo-express zipkin prometheus grafana
-```
 
-# Start everything up
-(all code is autoreloaded on changes)
 ```bash
-docker compose up
+docker compose pull tempo grafana tempo-init rabbitmq mongodb postgresdb prometheus mongo-express apicurio-registry apicurio-registry-ui
 ```
 
 # Resetting
