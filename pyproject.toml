@@ -37,10 +37,15 @@ dev = [
     "factory-boy>=3.3.3",
     "mockito>=1.5.4",
     "mypy>=1.18.2",
+    "pytest-httpx>=0.35.0",
     "pytest>=8.4.2",
     "pytest-cov>=7.0.0",
     "pytest-mockito>=0.0.4",
     "ruff>=0.13.2",
+    "time-machine>=2.19.0",
+    "vcrpy>=7.0.0",
+    "snowflake-connector-python>=3.17.4",
+    "import-linter>=2.5",
 ]
 
 [tool.uv.sources]
