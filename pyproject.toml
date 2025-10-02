@@ -52,3 +52,15 @@ dev = [
 mqlib = { path = "libs/mqlib", editable = true }
 container-or-host = { path = "libs/container_or_host", editable = true }
 
+[tool.mypy]
+strict = true
+disallow_any_generics = false
+
+[[tool.mypy.overrides]]
+module = [
+    "sqlalchemy.*",
+    "celery.*",
+    "mockito.*",
+]
+ignore_missing_imports = true
+
