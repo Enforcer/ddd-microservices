@@ -6,7 +6,7 @@ services:
       dockerfile: docker/Dockerfile
 
   postgresdb:
-    image: postgres:15.3
+    image: postgres:18
     environment:
       - POSTGRES_PASSWORD=usf
       - POSTGRES_USER=usf
@@ -89,3 +89,14 @@ services:
       ME_CONFIG_BASICAUTH_PASSWORD: usf
       ME_CONFIG_MONGODB_URL: mongodb://usf:usf@mongodb:27017/
 
+  apicurio-registry:
+    image: apicurio/apicurio-registry:3.0.15
+    ports:
+      - "8080:8080"
+
+  apicurio-registry-ui:
+    image: apicurio/apicurio-registry-ui:3.0.15
+    depends_on:
+      - apicurio-registry
+    ports:
+      - "8888:8080"
