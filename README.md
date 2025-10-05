@@ -15,6 +15,16 @@ docker compose build shell
 
 NOTE: This is a convenience for the workshop. Normally, each microservice would have a separate image and dependencies.
 
+## Verification
+
+Run a following command to check if everything went fine:
+
+```bash
+docker compose run -it shell python -c "import alembic"
+```
+
+The command should finish without any errors and no output.
+
 ## Pull the rest of images
 
 ```bash
