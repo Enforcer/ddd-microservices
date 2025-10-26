@@ -1,0 +1,35 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+!define DEVICONS https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/devicons
+!define FONTAWESOME https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/font-awesome-5
+
+!include DEVICONS/python.puml
+!include DEVICONS/postgresql.puml
+!include DEVICONS/mongodb.puml
+!include FONTAWESOME/user.puml
+
+Container(items, "Items", "Python, FastAPI", "adding items, edit,\ncategories and searching", $sprite="python")
+ContainerDb(itemsdb, "Items DB", "PostgreSQL", "Keeps items (title, description, images, status, etc) and categories", $sprite="postgresql")
+
+Container(chat, "Chat", "Python, FastAPI + asyncio", "messages for each item between seller and buyer to ask questions and negotiate price", $sprite="python")
+ContainerDb(chatdb, "Chat DB", "MongoDB", "Keeps conversations with price offers used for negotiations and whether they were accepted", $sprite="mongodb")
+
+Container(orders, "Orders", "Python, FastAPI", "checkout process - accepts buyer's address, presents shipping options and allows to pay. Tracks time left for payment and confirmation that item is fine", $sprite="python")
+ContainerDb(ordersdb, "Orders DB", "PostgreSQL", "keeps orders for specific items with statuses and timestamps like 'when paid' etc", $sprite="postgresql")
+
+Person(buyer, "Buyer", "Person browsing and buying items", $sprite="user")
+
+Rel_D(items, itemsdb, "uses")
+Rel_D(chat, chatdb, "uses")
+Rel_D(orders, ordersdb, "uses")
+
+Rel_R(chat, orders, "place order when price negotiatied")
+
+Lay_R(items, chat)
+
+Rel_D(buyer, items, "search items\nbrowse by category")
+Rel_D(buyer, chat, "send message\noffer price\nagree on counteroffer")
+Rel_D(buyer, orders, "place order")
+
+@enduml

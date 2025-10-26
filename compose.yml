@@ -7,6 +7,8 @@ services:
 
   postgresdb:
     image: postgres:18
+    volumes:
+      - ./docker/postgres_initdb:/docker-entrypoint-initdb.d
     environment:
       - POSTGRES_PASSWORD=usf
       - POSTGRES_USER=usf
@@ -100,3 +102,68 @@ services:
       - apicurio-registry
     ports:
       - "8888:8080"
+
+  availability:
+    image: micro-usf
+    hostname: docker-usf-items
+    depends_on:
+      - postgresdb
+    ports:
+      - "8300:8300"
+    volumes:
+      - ./used_stuff_market/availability:/usr/src/availability
+    working_dir: /usr/src/availability
+    command: bash -c 'alembic upgrade head && uvicorn availability.api:app --host 0.0.0.0 --port 8300 --reload'
+
+  items:
+    image: micro-usf
+    hostname: docker-usf-items
+    depends_on:
+      - postgresdb
+      - rabbitmq
+    ports:
+      - "8100:8100"
+    volumes:
+      - ./used_stuff_market/items:/usr/src/items
+    working_dir: /usr/src/items
+    command: bash -c 'alembic upgrade head && uvicorn items.api:app --host 0.0.0.0 --port 8100 --reload'
+
+  catalog:
+    image: micro-usf
+    hostname: docker-usf-catalog
+    depends_on:
+      - mongodb
+      - rabbitmq
+    ports:
+      - "8400:8400"
+    volumes:
+      - ./used_stuff_market/catalog:/usr/src/catalog
+    working_dir: /usr/src/catalog
+    environment:
+      PYTHONPATH: /usr/src/catalog
+    command: bash -c 'python catalog/migrations.py && uvicorn catalog.api:app --host 0.0.0.0 --port 8400 --reload'
+
+  likes:
+    image: micro-usf
+    hostname: docker-usf-likes
+    depends_on:
+      - postgresdb
+      - rabbitmq
+    ports:
+      - "8500:8500"
+    volumes:
+      - ./used_stuff_market/likes:/usr/src/likes
+    working_dir: /usr/src/likes
+    command: bash -c 'alembic upgrade head && uvicorn likes.api:app --host 0.0.0.0 --port 8500 --reload'
+
+  catalog-consumer:
+    image: micro-usf
+    hostname: docker-usf-catalog-consumer
+    depends_on:
+      - rabbitmq
+    volumes:
+      - ./used_stuff_market/catalog:/usr/src/catalog
+    working_dir: /usr/src/catalog
+    environment:
+      PYTHONPATH: /usr/src/catalog
+    command: watchfiles "python catalog/consumer.py" /usr/src/catalog
