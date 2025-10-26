@@ -1,10 +1,12 @@
 import httpx
+import tenacity
 
 from container_or_host import host_for_dependency
 from items.item import Item
 
 
 class CatalogClient:
+    @tenacity.retry
     def register_item(self, item: Item) -> None:
         host = host_for_dependency(addres_for_docker="catalog")
         body = {

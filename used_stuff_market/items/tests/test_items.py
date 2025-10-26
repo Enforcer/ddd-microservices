@@ -53,7 +53,6 @@ def test_added_item_is_available(client: TestClient, httpx_mock: HTTPXMock) -> N
     ]
 
 
-@pytest.mark.xfail()
 def test_flakiness_of_catalog_is_handled(
     client: TestClient, httpx_mock: HTTPXMock
 ) -> None:
