@@ -1,6 +1,7 @@
 from decimal import Decimal
 from typing import TypedDict
 
+from items.catalog_client import CatalogClient
 from items.item import Item
 from items.repository import ItemsRepository
 
@@ -38,6 +39,7 @@ class Items:
         )
         repository = ItemsRepository()
         repository.add(item)
+        CatalogClient().register_item(item)
 
     def get_items(self, owner_id: int) -> list[ItemDto]:
         repository = ItemsRepository()

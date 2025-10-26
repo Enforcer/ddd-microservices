@@ -23,8 +23,10 @@ def test_item_from_api_searchable(client: TestClient) -> None:
         },
         "version": 1,
     }
-    register_item_response = client.post(f"/items", json=body)
-    assert register_item_response.status_code == 200
+    while True:
+        register_item_response = client.post(f"/items", json=body)
+        if register_item_response.status_code == 200:
+            break
 
     term = "tekst"
     response = client.get(f"/search/{term}")

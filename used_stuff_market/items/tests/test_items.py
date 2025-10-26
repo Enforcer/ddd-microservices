@@ -2,6 +2,7 @@ from typing import Iterator, Any
 
 import pytest
 from fastapi.testclient import TestClient
+from pytest_httpx import HTTPXMock
 
 from items.api import app
 
@@ -20,7 +21,9 @@ class AnyInt(int):
         return "AnyInt()"
 
 
-def test_added_item_is_available(client: TestClient) -> None:
+def test_added_item_is_available(client: TestClient, httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response()
+
     post_response = client.post(
         "/items",
         json={
@@ -50,7 +53,32 @@ def test_added_item_is_available(client: TestClient) -> None:
     ]
 
 
-def test_update_of_item_is_applied(client: TestClient) -> None:
+@pytest.mark.xfail()
+def test_flakiness_of_catalog_is_handled(
+    client: TestClient, httpx_mock: HTTPXMock
+) -> None:
+    httpx_mock.add_response(status_code=500)
+    httpx_mock.add_response(status_code=500)
+    httpx_mock.add_response(status_code=200)
+
+    post_response = client.post(
+        "/items",
+        json={
+            "title": "Another item",
+            "description": "Colorful and costly",
+            "price": {
+                "amount": 199.99,
+                "currency": "USD",
+            },
+        },
+        headers={"user-id": "1"},
+    )
+    assert post_response.status_code == 204
+
+
+def test_update_of_item_is_applied(client: TestClient, httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response()
+
     post_response = client.post(
         "/items",
         json={
