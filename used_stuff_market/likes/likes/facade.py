@@ -1,7 +1,6 @@
 import mqlib
 from likes.db import ScopedSession
 from likes.models import Like
-from likes.queues import item_liked, item_unliked
 from sqlalchemy.exc import IntegrityError
 
 
@@ -15,18 +14,14 @@ class Likes:
         except IntegrityError:  # already have such a like
             session.rollback()
             return
-        else:
-            mqlib.publish(item_liked, {"item_id": item_id})
 
     def unlike(self, liker: int, item_id: int) -> None:
         session = ScopedSession()
-        removed = (
+        removed_rows = (
             session.query(Like)
             .filter(Like.item_id == item_id, Like.liker == str(liker))
             .delete()
         )
-        if removed > 0:
-            mqlib.publish(item_unliked, {"item_id": item_id})
 
     def count(self, item_id: int) -> int:
         session = ScopedSession()

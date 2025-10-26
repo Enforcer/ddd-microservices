@@ -1,9 +1,7 @@
 from decimal import Decimal
 from typing import TypedDict
 
-import mqlib
 from items.item import Item
-from items.queues import item_cdc
 from items.repository import ItemsRepository
 
 
@@ -40,19 +38,6 @@ class Items:
         )
         repository = ItemsRepository()
         repository.add(item)
-        mqlib.publish(
-            item_cdc,
-            message={
-                "item_id": item.id,
-                "title": item.title,
-                "description": item.description,
-                "price": {
-                    "amount": float(item.price_amount),
-                    "currency": item.price_currency,
-                },
-                "version": item.version_id,
-            },
-        )
 
     def get_items(self, owner_id: int) -> list[ItemDto]:
         repository = ItemsRepository()
@@ -94,16 +79,3 @@ class Items:
             item.description = description
             item.price_amount = price_amount
             item.price_currency = price_currency
-
-            mqlib.publish(
-                item_cdc,
-                message={
-                    "item_id": item.id,
-                    "title": item.title,
-                    "description": item.description,
-                    "price": {
-                        "amount": item.price_amount,
-                        "currency": item.price_amount,
-                    },
-                },
-            )

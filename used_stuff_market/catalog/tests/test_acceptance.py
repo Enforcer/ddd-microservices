@@ -1,9 +1,6 @@
 from typing import Iterator
-from unittest.mock import Mock
 
-import mqlib
 import pytest
-from catalog import consumer
 from catalog.api import app
 from fastapi.testclient import TestClient
 
@@ -39,78 +36,6 @@ def test_item_from_api_searchable(client: TestClient) -> None:
             "title": "Example",
             "description": "Losowy tekst bez większego znaczenia",
             "price": {"amount": 17.99, "currency": "USD"},
-            "likes": 0,
-        }
-    ]
-
-
-def test_item_from_event_is_searchable(client: TestClient) -> None:
-    item_id = 10_000
-    body = {
-        "item_id": item_id,
-        "title": "Spam",
-        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-        "price": {
-            "amount": 9.99,
-            "currency": "USD",
-        },
-        "version": 1,
-    }
-    consumer.on_item_change(body=body, message=Mock(spec_spet=mqlib.Message))
-    consumer.on_item_liked(
-        body={"item_id": item_id}, message=Mock(spec_spet=mqlib.Message)
-    )
-    consumer.on_item_liked(
-        body={"item_id": item_id}, message=Mock(spec_spet=mqlib.Message)
-    )
-    consumer.on_item_unliked(
-        body={"item_id": item_id}, message=Mock(spec_spet=mqlib.Message)
-    )
-
-    term = "consectetur"
-    response = client.get(f"/search/{term}")
-
-    assert response.status_code == 200
-    assert response.json() == [
-        {
-            "item_id": item_id,
-            "title": "Spam",
-            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-            "price": {"amount": 9.99, "currency": "USD"},
-            "likes": 1,
-        }
-    ]
-
-
-def test_another_message_with_same_version_is_ignored(client: TestClient) -> None:
-    body = {
-        "item_id": 20_000,
-        "title": "Another message",
-        "description": "Another description.",
-        "price": {
-            "amount": 1.99,
-            "currency": "USD",
-        },
-        "version": 1,
-    }
-    consumer.on_item_change(body=body, message=Mock(spec_spet=mqlib.Message))
-    another_message = body.copy()
-    another_message["title"] = "Oupsie!"
-    consumer.on_item_change(body=body, message=Mock(spec_spet=mqlib.Message))
-
-    term = "description"
-    response = client.get(f"/search/{term}")
-
-    assert response.status_code == 200
-    assert response.json() == [
-        {
-            "item_id": 20_000,
-            "title": "Another message",
-            "description": "Another description.",
-            "price": {
-                "amount": 1.99,
-                "currency": "USD",
-            },
             "likes": 0,
         }
     ]
