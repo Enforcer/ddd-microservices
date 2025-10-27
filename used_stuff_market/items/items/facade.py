@@ -1,8 +1,9 @@
 from decimal import Decimal
 from typing import TypedDict
 
-from items.catalog_client import CatalogClient
+import mqlib
 from items.item import Item
+from items.queues import item_cdc
 from items.repository import ItemsRepository
 
 
@@ -39,7 +40,10 @@ class Items:
         )
         repository = ItemsRepository()
         repository.add(item)
-        CatalogClient().register_item(item)
+        mqlib.publish(
+            item_cdc,
+            message={},  # TODO
+        )
 
     def get_items(self, owner_id: int) -> list[ItemDto]:
         repository = ItemsRepository()
@@ -81,3 +85,8 @@ class Items:
             item.description = description
             item.price_amount = price_amount
             item.price_currency = price_currency
+
+            mqlib.publish(
+                item_cdc,
+                message={},  # TODO
+            )

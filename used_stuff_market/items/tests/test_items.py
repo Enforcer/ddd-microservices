@@ -2,9 +2,10 @@ from typing import Iterator, Any
 
 import pytest
 from fastapi.testclient import TestClient
-from pytest_httpx import HTTPXMock
 
+import mqlib.testing
 from items.api import app
+from items.queues import item_cdc
 
 
 @pytest.fixture()
@@ -21,9 +22,36 @@ class AnyInt(int):
         return "AnyInt()"
 
 
-def test_added_item_is_available(client: TestClient, httpx_mock: HTTPXMock) -> None:
-    httpx_mock.add_response()
+def test_message_about_item_change_is_sent(client: TestClient) -> None:
+    mqlib.testing.purge(item_cdc)
 
+    post_response = client.post(
+        "/items",
+        json={
+            "title": "Lorem Ipsum Dolor Sit Amet",
+            "description": "Consectetur adipiscing elit.",
+            "price": {
+                "amount": 6.99,
+                "currency": "USD",
+            },
+        },
+        headers={"user-id": "3"},
+    )
+    assert post_response.status_code == 204
+
+    message = mqlib.testing.next_message(item_cdc, timeout=1)
+    assert message == {
+        "item_id": AnyInt(),
+        "title": "Lorem Ipsum Dolor Sit Amet",
+        "description": "Consectetur adipiscing elit.",
+        "price": {
+            "amount": 6.99,
+            "currency": "USD",
+        },
+    }
+
+
+def test_added_item_is_available(client: TestClient) -> None:
     post_response = client.post(
         "/items",
         json={
@@ -42,7 +70,7 @@ def test_added_item_is_available(client: TestClient, httpx_mock: HTTPXMock) -> N
     assert get_response.status_code == 200
     assert get_response.json() == [
         {
-            "id": 1,
+            "id": AnyInt(),
             "title": "Cool socks",
             "description": "A very nice item",
             "price": {
@@ -53,31 +81,7 @@ def test_added_item_is_available(client: TestClient, httpx_mock: HTTPXMock) -> N
     ]
 
 
-def test_flakiness_of_catalog_is_handled(
-    client: TestClient, httpx_mock: HTTPXMock
-) -> None:
-    httpx_mock.add_response(status_code=500)
-    httpx_mock.add_response(status_code=500)
-    httpx_mock.add_response(status_code=200)
-
-    post_response = client.post(
-        "/items",
-        json={
-            "title": "Another item",
-            "description": "Colorful and costly",
-            "price": {
-                "amount": 199.99,
-                "currency": "USD",
-            },
-        },
-        headers={"user-id": "1"},
-    )
-    assert post_response.status_code == 204
-
-
-def test_update_of_item_is_applied(client: TestClient, httpx_mock: HTTPXMock) -> None:
-    httpx_mock.add_response()
-
+def test_update_of_item_is_applied(client: TestClient) -> None:
     post_response = client.post(
         "/items",
         json={
