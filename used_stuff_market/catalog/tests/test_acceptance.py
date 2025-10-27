@@ -1,6 +1,9 @@
 from typing import Iterator
+from unittest.mock import Mock
 
 import pytest
+import mqlib
+from catalog import consumer
 from catalog.api import app
 from fastapi.testclient import TestClient
 
@@ -9,6 +12,34 @@ from fastapi.testclient import TestClient
 def client() -> Iterator[TestClient]:
     with TestClient(app) as client:
         yield client
+
+
+def test_item_from_event_is_searchable(client: TestClient) -> None:
+    item_id = 10_000
+    body = {
+        "item_id": item_id,
+        "title": "Spam",
+        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "price": {
+            "amount": 9.99,
+            "currency": "USD",
+        },
+    }
+    consumer.on_item_change(body=body, message=Mock(spec_spet=mqlib.Message))
+
+    term = "consectetur"
+    response = client.get(f"/search/{term}")
+
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "item_id": item_id,
+            "title": "Spam",
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+            "price": {"amount": 9.99, "currency": "USD"},
+            "likes": 0,
+        }
+    ]
 
 
 def test_item_from_api_searchable(client: TestClient) -> None:
