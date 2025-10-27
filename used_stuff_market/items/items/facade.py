@@ -50,6 +50,7 @@ class Items:
                     "amount": float(item.price_amount),
                     "currency": item.price_currency,
                 },
+                "version": item.version_id,
             },
         )
 
@@ -104,5 +105,6 @@ class Items:
                         "amount": float(item.price_amount),
                         "currency": item.price_currency,
                     },
+                    "version": item.version_id + 1,
                 },
             )

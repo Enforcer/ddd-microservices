@@ -24,6 +24,7 @@ def test_item_from_event_is_searchable(client: TestClient) -> None:
             "amount": 9.99,
             "currency": "USD",
         },
+        "version": 1,
     }
     consumer.on_item_change(body=body, message=Mock(spec_spet=mqlib.Message))
 
@@ -52,6 +53,7 @@ def test_item_updates_are_handled(client: TestClient) -> None:
             "amount": 19.99,
             "currency": "USD",
         },
+        "version": 1,
     }
     consumer.on_item_change(body=body, message=Mock(spec_spet=mqlib.Message))
     body = {
@@ -62,6 +64,7 @@ def test_item_updates_are_handled(client: TestClient) -> None:
             "amount": 29.99,
             "currency": "USD",
         },
+        "version": 2,
     }
     consumer.on_item_change(body=body, message=Mock(spec_spet=mqlib.Message))
 
@@ -75,6 +78,46 @@ def test_item_updates_are_handled(client: TestClient) -> None:
             "title": "Ham",
             "description": "No description anymore",
             "price": {"amount": 29.99, "currency": "USD"},
+            "likes": 0,
+        }
+    ]
+
+
+def test_duplicates_are_ignored(client: TestClient) -> None:
+    item_id = 10_002
+    body = {
+        "item_id": item_id,
+        "title": "Pineapple",
+        "description": "Medium Hawaii for everyone",
+        "price": {
+            "amount": 19.99,
+            "currency": "USD",
+        },
+        "version": 1,
+    }
+    consumer.on_item_change(body=body, message=Mock(spec_spet=mqlib.Message))
+    body = {
+        "item_id": item_id,
+        "title": "Prosciutto",
+        "description": "Funghi!",
+        "price": {
+            "amount": 0.99,
+            "currency": "USD",
+        },
+        "version": 1,
+    }
+    consumer.on_item_change(body=body, message=Mock(spec_spet=mqlib.Message))
+
+    term = "Hawaii"
+    response = client.get(f"/search/{term}")
+
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "item_id": item_id,
+            "title": "Pineapple",
+            "description": "Medium Hawaii for everyone",
+            "price": {"amount": 19.99, "currency": "USD"},
             "likes": 0,
         }
     ]

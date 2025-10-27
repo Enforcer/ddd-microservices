@@ -48,6 +48,7 @@ def test_message_about_item_change_is_sent(client: TestClient) -> None:
             "amount": 6.99,
             "currency": "USD",
         },
+        "version": 1
     }
 
 
