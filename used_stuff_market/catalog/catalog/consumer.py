@@ -2,7 +2,7 @@ import logging
 
 import mqlib
 from catalog import dao
-from catalog.queues import item_cdc, setup_queues
+from catalog.queues import item_cdc, item_unliked, item_liked, setup_queues
 
 
 def on_item_change(body: dict, message: mqlib.Message) -> None:
@@ -22,8 +22,21 @@ def on_item_change(body: dict, message: mqlib.Message) -> None:
         )
         return
 
-    data = {**body, "likes": 0}
+    if existing_doc is not None:
+        likes = existing_doc["likes"]
+    else:
+        likes = 0
+
+    data = {**body, "likes": likes}
     dao.upsert(body["item_id"], data)
+
+
+def on_item_liked(body: dict, message: mqlib.Message) -> None:
+    pass
+
+
+def on_item_unliked(body: dict, message: mqlib.Message) -> None:
+    pass
 
 
 if __name__ == "__main__":
@@ -32,5 +45,7 @@ if __name__ == "__main__":
     mqlib.consume(
         {
             item_cdc: on_item_change,
+            item_liked: on_item_liked,
+            item_unliked: on_item_unliked,
         }
     )
