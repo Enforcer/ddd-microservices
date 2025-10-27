@@ -42,6 +42,44 @@ def test_item_from_event_is_searchable(client: TestClient) -> None:
     ]
 
 
+def test_item_updates_are_handled(client: TestClient) -> None:
+    item_id = 10_001
+    body = {
+        "item_id": item_id,
+        "title": "Ham",
+        "description": "Irrelevant description",
+        "price": {
+            "amount": 19.99,
+            "currency": "USD",
+        },
+    }
+    consumer.on_item_change(body=body, message=Mock(spec_spet=mqlib.Message))
+    body = {
+        "item_id": item_id,
+        "title": "Ham",
+        "description": "No description anymore",
+        "price": {
+            "amount": 29.99,
+            "currency": "USD",
+        },
+    }
+    consumer.on_item_change(body=body, message=Mock(spec_spet=mqlib.Message))
+
+    term = "anymore"
+    response = client.get(f"/search/{term}")
+
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "item_id": item_id,
+            "title": "Ham",
+            "description": "No description anymore",
+            "price": {"amount": 29.99, "currency": "USD"},
+            "likes": 0,
+        }
+    ]
+
+
 def test_item_from_api_searchable(client: TestClient) -> None:
     item_id = 1_000
     body = {
