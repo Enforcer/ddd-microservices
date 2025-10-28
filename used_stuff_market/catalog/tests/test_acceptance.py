@@ -107,6 +107,12 @@ def test_duplicates_are_ignored(client: TestClient) -> None:
         "version": 1,
     }
     consumer.on_item_change(body=body, message=Mock(spec_spet=mqlib.Message))
+    consumer.on_item_liked(
+        body={"item_id": item_id}, message=Mock(spec_spet=mqlib.Message)
+    )
+    consumer.on_item_unliked(
+        body={"item_id": item_id}, message=Mock(spec_spet=mqlib.Message)
+    )
 
     term = "Hawaii"
     response = client.get(f"/search/{term}")
@@ -121,6 +127,33 @@ def test_duplicates_are_ignored(client: TestClient) -> None:
             "likes": 0,
         }
     ]
+
+
+def test_duplicated_likes_are_ignored(client: TestClient) -> None:
+    item_id = 10_003
+    body = {
+        "item_id": item_id,
+        "title": "Margarita",
+        "description": "Just cheese",
+        "price": {
+            "amount": 8.99,
+            "currency": "USD",
+        },
+        "version": 1,
+    }
+    consumer.on_item_change(body=body, message=Mock(spec_spet=mqlib.Message))
+    consumer.on_item_liked(
+        body={"item_id": item_id}, message=Mock(spec_spet=mqlib.Message)
+    )
+    consumer.on_item_liked(
+        body={"item_id": item_id}, message=Mock(spec_spet=mqlib.Message)
+    )
+
+    term = "Margarita"
+    response = client.get(f"/search/{term}")
+
+    assert response.status_code == 200
+    assert response.json()[0]["likes"] == 1
 
 
 def test_item_from_api_searchable(client: TestClient) -> None:

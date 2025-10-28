@@ -32,11 +32,15 @@ def on_item_change(body: dict, message: mqlib.Message) -> None:
 
 
 def on_item_liked(body: dict, message: mqlib.Message) -> None:
-    pass
+    item = dao.get(body["item_id"])
+    item["likes"] += 1
+    dao.upsert(body["item_id"], item)
 
 
 def on_item_unliked(body: dict, message: mqlib.Message) -> None:
-    pass
+    item = dao.get(body["item_id"])
+    item["likes"] -= 1
+    dao.upsert(body["item_id"], item)
 
 
 if __name__ == "__main__":
