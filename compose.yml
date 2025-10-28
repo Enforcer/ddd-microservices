@@ -128,6 +128,19 @@ services:
     working_dir: /usr/src/items
     command: bash -c 'alembic upgrade head && uvicorn items.api:app --host 0.0.0.0 --port 8100 --reload'
 
+  items-outbox-processor:
+    image: micro-usf
+    hostname: docker-usf-items-outbox-processor
+    depends_on:
+      - postgresdb
+      - rabbitmq
+    volumes:
+      - ./used_stuff_market/items:/usr/src/items
+    working_dir: /usr/src/items
+    environment:
+      PYTHONPATH: /usr/src/items
+    command: watchfiles "python items/outbox_processor.py" /usr/src/items
+
   catalog:
     image: micro-usf
     hostname: docker-usf-catalog

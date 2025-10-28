@@ -4,6 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 import mqlib.testing
+from items import outbox_processor
 from items.api import app
 from items.queues import item_cdc
 
@@ -39,6 +40,7 @@ def test_message_about_item_change_is_sent(client: TestClient) -> None:
     )
     assert post_response.status_code == 204
 
+    outbox_processor.run_once()
     message = mqlib.testing.next_message(item_cdc, timeout=1)
     assert message == {
         "item_id": AnyInt(),
@@ -48,7 +50,7 @@ def test_message_about_item_change_is_sent(client: TestClient) -> None:
             "amount": 6.99,
             "currency": "USD",
         },
-        "version": 1
+        "version": 1,
     }
 
 
