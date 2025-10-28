@@ -13,11 +13,11 @@ def get(item_id: int) -> dict | None:
     return collection.find_one({"item_id": item_id}, projection={"_id": False})
 
 
-def message_handled(id: int) -> None:
-    collection = getattr(db.get(), "messages")
-    collection.insert_one({"id": id})
+def push_like(item_id: int, liker_id: int) -> None:
+    collection = getattr(db.get(), "catalog_items")
+    collection.update_one({"item_id": item_id}, {"$addToSet": {"likers": liker_id}})
 
 
-def was_message_handled(id: int) -> bool:
-    collection = getattr(db.get(), "messages")
-    return collection.find_one({"id": id}, projection={"_id": False}) is not None
+def pop_like(item_id: int, liker_id: int) -> None:
+    collection = getattr(db.get(), "catalog_items")
+    collection.update_one({"item_id": item_id}, {"$pull": {"likers": liker_id}})

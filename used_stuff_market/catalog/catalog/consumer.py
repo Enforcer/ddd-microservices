@@ -24,33 +24,25 @@ def on_item_change(body: dict, message: mqlib.Message) -> None:
 
     if existing_doc is not None:
         likes = existing_doc["likes"]
+        likers = existing_doc["likers"]
     else:
         likes = 0
+        likers = []
 
-    data = {**body, "likes": likes}
+    data = {**body, "likes": likes, "likers": likers}
     dao.upsert(body["item_id"], data)
 
 
 def on_item_liked(body: dict, message: mqlib.Message) -> None:
-    message_id = body["id"]
-    if dao.was_message_handled(message_id):
-        return
-
-    item = dao.get(body["item_id"])
-    item["likes"] += 1
-    dao.upsert(body["item_id"], item)
-    dao.message_handled(message_id)
+    liker_id = body["liker_id"]
+    item_id = body["item_id"]
+    dao.push_like(item_id, liker_id)
 
 
 def on_item_unliked(body: dict, message: mqlib.Message) -> None:
-    message_id = body["id"]
-    if dao.was_message_handled(message_id):
-        return
-
-    item = dao.get(body["item_id"])
-    item["likes"] -= 1
-    dao.upsert(body["item_id"], item)
-    dao.message_handled(message_id)
+    liker_id = body["liker_id"]
+    item_id = body["item_id"]
+    dao.pop_like(item_id, liker_id)
 
 
 if __name__ == "__main__":

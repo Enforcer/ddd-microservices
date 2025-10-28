@@ -17,13 +17,6 @@ def migrate() -> None:
             ("description", pymongo.TEXT),
         ]
     )
-    messages_collection = getattr(db.get(), "messages")
-    messages_collection.create_index(
-        [
-            ("id", pymongo.ASCENDING),
-        ],
-        unique=True,
-    )
 
 
 if __name__ == "__main__":
