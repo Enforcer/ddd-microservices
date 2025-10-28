@@ -108,10 +108,10 @@ def test_duplicates_are_ignored(client: TestClient) -> None:
     }
     consumer.on_item_change(body=body, message=Mock(spec_spet=mqlib.Message))
     consumer.on_item_liked(
-        body={"item_id": item_id}, message=Mock(spec_spet=mqlib.Message)
+        body={"item_id": item_id, "id": 124}, message=Mock(spec_spet=mqlib.Message)
     )
     consumer.on_item_unliked(
-        body={"item_id": item_id}, message=Mock(spec_spet=mqlib.Message)
+        body={"item_id": item_id, "id": 125}, message=Mock(spec_spet=mqlib.Message)
     )
 
     term = "Hawaii"
@@ -143,10 +143,10 @@ def test_duplicated_likes_are_ignored(client: TestClient) -> None:
     }
     consumer.on_item_change(body=body, message=Mock(spec_spet=mqlib.Message))
     consumer.on_item_liked(
-        body={"item_id": item_id}, message=Mock(spec_spet=mqlib.Message)
+        body={"item_id": item_id, "id": 123}, message=Mock(spec_spet=mqlib.Message)
     )
     consumer.on_item_liked(
-        body={"item_id": item_id}, message=Mock(spec_spet=mqlib.Message)
+        body={"item_id": item_id, "id": 123}, message=Mock(spec_spet=mqlib.Message)
     )
 
     term = "Margarita"
