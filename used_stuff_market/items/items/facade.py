@@ -4,6 +4,7 @@ from typing import TypedDict
 import mqlib
 from items.db import ScopedSession
 from items.item import Item
+from items.models import OutboxEntry
 from items.queues import item_cdc
 from items.repository import ItemsRepository
 
@@ -41,12 +42,10 @@ class Items:
         )
         repository = ItemsRepository()
         repository.add(item)
-        # TODO - use to save message to outbox instead of sending
-        # session = ScopedSession()
-        # session.add(...)
-        mqlib.publish(
-            item_cdc,
-            message={
+        session = ScopedSession()
+        entry = OutboxEntry(
+            queue=item_cdc.name,
+            data={
                 "item_id": item.id,
                 "title": item.title,
                 "description": item.description,
@@ -57,6 +56,7 @@ class Items:
                 "version": item.version_id,
             },
         )
+        session.add(entry)
 
     def get_items(self, owner_id: int) -> list[ItemDto]:
         repository = ItemsRepository()
@@ -99,9 +99,10 @@ class Items:
             item.price_amount = price_amount
             item.price_currency = price_currency
 
-            mqlib.publish(
-                item_cdc,
-                message={
+            session = ScopedSession()
+            entry = OutboxEntry(
+                queue=item_cdc.name,
+                data={
                     "item_id": item.id,
                     "title": item.title,
                     "description": item.description,
@@ -112,3 +113,4 @@ class Items:
                     "version": item.version_id + 1,
                 },
             )
+            session.add(entry)
