@@ -93,6 +93,9 @@ services:
 
   apicurio-registry:
     image: apicurio/apicurio-registry:3.0.15
+    environment:
+      "apicurio.rest.deletion.artifact-version.enabled": true
+      "apicurio.rest.deletion.artifact.enabled": true
     ports:
       - "8080:8080"
 
