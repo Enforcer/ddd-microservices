@@ -6,12 +6,10 @@ from fastapi import FastAPI, Header, Response
 from lagom.integrations.fast_api import FastApiIntegration
 
 from items.app.facade import Items
-from items.infrastructure.outbox import SqlAlchemyOutbox
 from items.infrastructure.queues import setup_queues
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy.orm import Session
 
-from items.infrastructure.repository import SqlAlchemyItemsRepository
 from items.main import container
 
 
@@ -59,9 +57,9 @@ class ItemData(BaseModel):
 def add(
     data: ItemData,
     user_id: int = Header(),
+    items: Items = deps.depends(Items),
     session: Session = deps.depends(Session),
 ) -> Response:
-    items = Items(SqlAlchemyItemsRepository(session), SqlAlchemyOutbox(session))
     items.add(
         owner_id=user_id,
         title=data.title,
@@ -78,9 +76,9 @@ def update(
     item_id: int,
     data: ItemData,
     user_id: int = Header(),
+    items: Items = deps.depends(Items),
     session: Session = deps.depends(Session),
 ) -> Response:
-    items = Items(SqlAlchemyItemsRepository(session), SqlAlchemyOutbox(session))
     items.update(
         owner_id=user_id,
         item_id=item_id,
@@ -95,7 +93,6 @@ def update(
 
 @app.get("/items")
 def get_items(
-    user_id: int = Header(), session: Session = deps.depends(Session)
+    user_id: int = Header(), items: Items = deps.depends(Items)
 ) -> list[dict]:
-    items = Items(SqlAlchemyItemsRepository(session), SqlAlchemyOutbox(session))
     return items.get_items(owner_id=user_id)  # type: ignore
