@@ -3,6 +3,7 @@ from typing import TypedDict
 
 import mqlib
 from items.db import ScopedSession
+from items.events import ItemUpdated, Price
 from items.item import Item
 from items.models import OutboxEntry
 from items.queues import item_cdc
@@ -43,18 +44,19 @@ class Items:
         repository = ItemsRepository()
         repository.add(item)
         session = ScopedSession()
+        data = ItemUpdated(
+            item_id=item.id,
+            title=item.title,
+            description=item.description,
+            price=Price(
+                amount=float(item.price_amount),
+                currency=item.price_currency,
+            ),
+            version=item.version_id,
+        ).model_dump(mode="json")
         entry = OutboxEntry(
             queue=item_cdc.name,
-            data={
-                "item_id": item.id,
-                "title": item.title,
-                "description": item.description,
-                "price": {
-                    "amount": float(item.price_amount),
-                    "currency": item.price_currency,
-                },
-                "version": item.version_id,
-            },
+            data=data,
         )
         session.add(entry)
 
@@ -100,17 +102,18 @@ class Items:
             item.price_currency = price_currency
 
             session = ScopedSession()
+            data = ItemUpdated(
+                item_id=item.id,
+                title=item.title,
+                description=item.description,
+                price=Price(
+                    amount=float(item.price_amount),
+                    currency=item.price_currency,
+                ),
+                version=item.version_id + 1,
+            ).model_dump(mode="json")
             entry = OutboxEntry(
                 queue=item_cdc.name,
-                data={
-                    "item_id": item.id,
-                    "title": item.title,
-                    "description": item.description,
-                    "price": {
-                        "amount": float(item.price_amount),
-                        "currency": item.price_currency,
-                    },
-                    "version": item.version_id + 1,
-                },
+                data=data,
             )
             session.add(entry)
