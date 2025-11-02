@@ -2,9 +2,9 @@ import logging
 import time
 
 import mqlib
-from items.db import db_session
-from items.models import OutboxEntry
-from items.queues import setup_queues
+from items.infrastructure.db import db_session
+from items.infrastructure.models import OutboxEntry
+from items.infrastructure.queues import setup_queues
 
 
 def run_once():

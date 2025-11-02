@@ -2,7 +2,7 @@ from typing import Iterator
 
 import pytest
 
-from items.events import ItemUpdated
+from items.app.events import ItemUpdated
 from mqlib.apicurio_registry_client import ApicurioRegistryClient, IncompatibleVersion
 
 
@@ -20,7 +20,9 @@ def golden_schema(schema_registry_client: ApicurioRegistryClient) -> Iterator[No
 
 
 @pytest.mark.usefixtures("golden_schema")
-def test_event_schema_maintains_compatibility(schema_registry_client: ApicurioRegistryClient) -> None:
+def test_event_schema_maintains_compatibility(
+    schema_registry_client: ApicurioRegistryClient,
+) -> None:
     new_schema = ItemUpdated.model_json_schema()
 
     try:
@@ -33,51 +35,22 @@ GOLDEN_EVENT_SCHEMA = {
     "$defs": {
         "Price": {
             "properties": {
-                "amount": {
-                    "title": "Amount",
-                    "type": "number"
-                },
-                "currency": {
-                    "title": "Currency",
-                    "type": "string"
-                }
+                "amount": {"title": "Amount", "type": "number"},
+                "currency": {"title": "Currency", "type": "string"},
             },
-            "required": [
-                "amount",
-                "currency"
-            ],
+            "required": ["amount", "currency"],
             "title": "Price",
-            "type": "object"
+            "type": "object",
         }
     },
     "properties": {
-        "item_id": {
-            "title": "Item Id",
-            "type": "integer"
-        },
-        "title": {
-            "title": "Title",
-            "type": "string"
-        },
-        "description": {
-            "title": "Description",
-            "type": "string"
-        },
-        "price": {
-            "$ref": "#/$defs/Price"
-        },
-        "version": {
-            "title": "Version",
-            "type": "integer"
-        }
+        "item_id": {"title": "Item Id", "type": "integer"},
+        "title": {"title": "Title", "type": "string"},
+        "description": {"title": "Description", "type": "string"},
+        "price": {"$ref": "#/$defs/Price"},
+        "version": {"title": "Version", "type": "integer"},
     },
-    "required": [
-        "item_id",
-        "title",
-        "description",
-        "price",
-        "version"
-    ],
+    "required": ["item_id", "title", "description", "price", "version"],
     "title": "ItemUpdated",
-    "type": "object"
+    "type": "object",
 }

@@ -5,8 +5,8 @@ from fastapi.testclient import TestClient
 
 import mqlib.testing
 from items import outbox_processor
-from items.api import app
-from items.queues import item_cdc
+from items.web.api import app
+from items.infrastructure.queues import item_cdc
 
 
 @pytest.fixture()

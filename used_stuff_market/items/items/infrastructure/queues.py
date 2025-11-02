@@ -1,7 +1,9 @@
 import mqlib
 from kombu import Queue
 
-item_cdc = Queue("items.cdc.item", durable=True)
+from items.app.queues import ITEM_CDC
+
+item_cdc = Queue(ITEM_CDC, durable=True)
 
 
 def setup_queues():

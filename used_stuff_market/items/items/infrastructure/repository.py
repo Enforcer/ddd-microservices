@@ -1,42 +1,23 @@
-import abc
-
-from items.db import ScopedSession, mapper_registry, metadata
-from items.item import Item
+from items.app.repository import ItemsRepository
+from items.infrastructure.db import mapper_registry, metadata
+from items.domain.item import Item
 from sqlalchemy import Column, Integer, Numeric, String, Table
+from sqlalchemy.orm import Session
 from sqlalchemy.exc import NoResultFound
 
 
-class ItemsRepository(abc.ABC):
-    class NotFound(Exception):
-        pass
-
-    @abc.abstractmethod
-    def add(self, item: Item) -> None:
-        pass
-
-    @abc.abstractmethod
-    def get(self, owner_id: int, item_id: int) -> Item:
-        pass
-
-    @abc.abstractmethod
-    def for_owner(self, owner_id: int) -> list[Item]:
-        pass
-
-
-class SqlAlchemyItemsRepository:
-    class NotFound(Exception):
-        pass
+class SqlAlchemyItemsRepository(ItemsRepository):
+    def __init__(self, session: Session) -> None:
+        self._session = session
 
     def add(self, item: Item) -> None:
-        session = ScopedSession()
-        session.add(item)
-        session.flush()
+        self._session.add(item)
+        self._session.flush()
 
     def get(self, owner_id: int, item_id: int) -> Item:
-        session = ScopedSession()
         try:
             return (
-                session.query(Item)
+                self._session.query(Item)
                 .filter(Item.owner_id == owner_id, Item.id == item_id)
                 .one()
             )
@@ -44,8 +25,7 @@ class SqlAlchemyItemsRepository:
             raise self.NotFound
 
     def for_owner(self, owner_id: int) -> list[Item]:
-        session = ScopedSession()
-        items: list[Item] = session.query(Item).filter(Item.owner_id == owner_id).all()
+        items: list[Item] = self._session.query(Item).filter(Item.owner_id == owner_id).all()
         return items
 
 

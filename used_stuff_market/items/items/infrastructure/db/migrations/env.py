@@ -1,7 +1,9 @@
 from logging.config import fileConfig
 
 from alembic import context
-from items.db import metadata, session_factory
+from items.infrastructure.db import metadata, session_factory
+from items.infrastructure import models  # noqa  (for models discovery)
+from items.infrastructure.repository import items  # noqa  (for models discovery)
 
 config = context.config
 
@@ -10,9 +12,6 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 engine = session_factory.kw["bind"]
-
-from items.models import *  # for discovery
-from items.repository import items as items_table  # for discovery
 
 target_metadata = metadata
 

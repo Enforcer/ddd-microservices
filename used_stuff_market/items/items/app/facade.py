@@ -1,13 +1,11 @@
 from decimal import Decimal
 from typing import TypedDict
 
-import mqlib
-from items.db import ScopedSession
-from items.events import ItemUpdated, Price
-from items.item import Item
-from items.models import OutboxEntry
-from items.queues import item_cdc
-from items.repository import SqlAlchemyItemsRepository, ItemsRepository
+from items.app.outbox import Outbox
+from items.app.queues import ITEM_CDC
+from items.app.events import ItemUpdated, Price
+from items.app.repository import ItemsRepository
+from items.domain.item import Item
 
 
 class MoneyDto(TypedDict):
@@ -23,6 +21,10 @@ class ItemDto(TypedDict):
 
 
 class Items:
+    def __init__(self, repository: ItemsRepository, outbox: Outbox) -> None:
+        self._repository = repository
+        self._outbox = outbox
+
     class NoSuchItem(Exception):
         pass
 
@@ -41,10 +43,8 @@ class Items:
             price_amount=starting_price_amount,
             price_currency=starting_price_currency,
         )
-        repository = SqlAlchemyItemsRepository()
-        repository.add(item)
-        session = ScopedSession()
-        data = ItemUpdated(
+        self._repository.add(item)
+        message = ItemUpdated(
             item_id=item.id,
             title=item.title,
             description=item.description,
@@ -53,16 +53,11 @@ class Items:
                 currency=item.price_currency,
             ),
             version=item.version_id,
-        ).model_dump(mode="json")
-        entry = OutboxEntry(
-            queue=item_cdc.name,
-            data=data,
         )
-        session.add(entry)
+        self._outbox.put(ITEM_CDC, message)
 
     def get_items(self, owner_id: int) -> list[ItemDto]:
-        repository = SqlAlchemyItemsRepository()
-        items = repository.for_owner(owner_id=owner_id)
+        items = self._repository.for_owner(owner_id=owner_id)
         return [
             ItemDto(
                 id=item.id,
@@ -90,9 +85,8 @@ class Items:
         price_amount: Decimal,
         price_currency: str,
     ) -> None:
-        repository = SqlAlchemyItemsRepository()
         try:
-            item = repository.get(owner_id=owner_id, item_id=item_id)
+            item = self._repository.get(owner_id=owner_id, item_id=item_id)
         except ItemsRepository.NotFound:
             raise self.NoSuchItem
         else:
@@ -101,8 +95,7 @@ class Items:
             item.price_amount = price_amount
             item.price_currency = price_currency
 
-            session = ScopedSession()
-            data = ItemUpdated(
+            message = ItemUpdated(
                 item_id=item.id,
                 title=item.title,
                 description=item.description,
@@ -111,9 +104,5 @@ class Items:
                     currency=item.price_currency,
                 ),
                 version=item.version_id + 1,
-            ).model_dump(mode="json")
-            entry = OutboxEntry(
-                queue=item_cdc.name,
-                data=data,
             )
-            session.add(entry)
+            self._outbox.put(ITEM_CDC, message)

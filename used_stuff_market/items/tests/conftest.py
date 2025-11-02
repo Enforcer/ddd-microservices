@@ -6,7 +6,7 @@ import alembic.config
 import httpx
 import mqlib
 import pytest
-from items.db import engine, session_factory
+from items.infrastructure.db import engine, session_factory
 from sqlalchemy import create_engine, text
 
 
@@ -22,7 +22,9 @@ def test_db() -> Iterator[None]:
     test_db_engine = create_engine(testing_db_url, future=True, echo=True)
     session_factory.configure(bind=test_db_engine)
 
-    script_location = pathlib.Path(__file__).parent.parent / "items/db/migrations/"
+    script_location = (
+        pathlib.Path(__file__).parent.parent / "items/infrastructure/db/migrations/"
+    )
     config = alembic.config.Config()
     config.set_main_option("script_location", str(script_location))
     alembic.command.upgrade(config=config, revision="head")

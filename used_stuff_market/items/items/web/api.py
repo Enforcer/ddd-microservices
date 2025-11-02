@@ -3,11 +3,14 @@ from decimal import Decimal
 from typing import Iterator, AsyncIterator
 
 from fastapi import Depends, FastAPI, Header, Response
-from items.db import db_session
-from items.facade import Items
-from items.queues import setup_queues
+from items.infrastructure.db import db_session
+from items.app.facade import Items
+from items.infrastructure.outbox import SqlAlchemyOutbox
+from items.infrastructure.queues import setup_queues
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy.orm import Session
+
+from items.infrastructure.repository import SqlAlchemyItemsRepository
 
 
 def get_session() -> Iterator[Session]:
@@ -54,7 +57,7 @@ def add(
     user_id: int = Header(),
     session: Session = Depends(get_session),
 ) -> Response:
-    items = Items()
+    items = Items(SqlAlchemyItemsRepository(session), SqlAlchemyOutbox(session))
     items.add(
         owner_id=user_id,
         title=data.title,
@@ -73,7 +76,7 @@ def update(
     user_id: int = Header(),
     session: Session = Depends(get_session),
 ) -> Response:
-    items = Items()
+    items = Items(SqlAlchemyItemsRepository(session), SqlAlchemyOutbox(session))
     items.update(
         owner_id=user_id,
         item_id=item_id,
@@ -87,6 +90,8 @@ def update(
 
 
 @app.get("/items")
-def get_items(user_id: int = Header()) -> list[dict]:
-    items = Items()
+def get_items(
+    user_id: int = Header(), session: Session = Depends(get_session)
+) -> list[dict]:
+    items = Items(SqlAlchemyItemsRepository(session), SqlAlchemyOutbox(session))
     return items.get_items(owner_id=user_id)  # type: ignore

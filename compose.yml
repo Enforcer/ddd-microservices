@@ -129,7 +129,7 @@ services:
     volumes:
       - ./used_stuff_market/items:/usr/src/items
     working_dir: /usr/src/items
-    command: bash -c 'alembic upgrade head && uvicorn items.api:app --host 0.0.0.0 --port 8100 --reload'
+    command: bash -c 'alembic upgrade head && uvicorn items.web.api:app --host 0.0.0.0 --port 8100 --reload'
 
   items-outbox-processor:
     image: micro-usf
@@ -142,7 +142,7 @@ services:
     working_dir: /usr/src/items
     environment:
       PYTHONPATH: /usr/src/items
-    command: watchfiles "python items/outbox_processor.py" /usr/src/items
+    command: watchfiles "python items/outbox_processor/__init__.py" /usr/src/items
 
   catalog:
     image: micro-usf
