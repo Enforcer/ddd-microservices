@@ -1,14 +1,16 @@
 import logging
 import time
+from typing import ContextManager
 
 import mqlib
-from items.infrastructure.db import db_session
+from sqlalchemy.orm import Session
+from items.main import container
 from items.infrastructure.models import OutboxEntry
 from items.infrastructure.queues import setup_queues
 
 
 def run_once():
-    with db_session() as session:
+    with container.resolve(ContextManager[Session]) as session:
         entries = (
             session.query(OutboxEntry)
             .with_for_update(skip_locked=True)

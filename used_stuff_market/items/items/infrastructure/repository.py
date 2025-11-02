@@ -25,7 +25,9 @@ class SqlAlchemyItemsRepository(ItemsRepository):
             raise self.NotFound
 
     def for_owner(self, owner_id: int) -> list[Item]:
-        items: list[Item] = self._session.query(Item).filter(Item.owner_id == owner_id).all()
+        items: list[Item] = (
+            self._session.query(Item).filter(Item.owner_id == owner_id).all()
+        )
         return items
 
 

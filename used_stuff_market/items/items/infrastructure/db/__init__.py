@@ -1,13 +1,10 @@
-from contextlib import contextmanager
 from typing import Any
 
 from container_or_host import host_for_dependency
 from sqlalchemy import create_engine
 from sqlalchemy.orm import (
-    Session,
     as_declarative,
     registry,
-    scoped_session,
     sessionmaker,
 )
 
@@ -16,7 +13,6 @@ engine = create_engine(
     f"postgresql://usf:usf@{HOST}:5432/items", future=True, echo=True
 )
 session_factory = sessionmaker(bind=engine)
-ScopedSession = scoped_session(session_factory)
 
 
 @as_declarative()
@@ -27,14 +23,3 @@ class Base:
 
 metadata = Base.metadata  # type: ignore
 mapper_registry = registry(metadata=metadata)
-
-
-@contextmanager
-def db_session() -> Session:
-    session = ScopedSession()
-    try:
-        yield session
-    except Exception:
-        raise
-    finally:
-        ScopedSession.remove()
