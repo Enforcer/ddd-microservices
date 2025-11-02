@@ -7,7 +7,7 @@ from items.events import ItemUpdated, Price
 from items.item import Item
 from items.models import OutboxEntry
 from items.queues import item_cdc
-from items.repository import ItemsRepository
+from items.repository import SqlAlchemyItemsRepository, ItemsRepository
 
 
 class MoneyDto(TypedDict):
@@ -41,7 +41,7 @@ class Items:
             price_amount=starting_price_amount,
             price_currency=starting_price_currency,
         )
-        repository = ItemsRepository()
+        repository = SqlAlchemyItemsRepository()
         repository.add(item)
         session = ScopedSession()
         data = ItemUpdated(
@@ -61,7 +61,7 @@ class Items:
         session.add(entry)
 
     def get_items(self, owner_id: int) -> list[ItemDto]:
-        repository = ItemsRepository()
+        repository = SqlAlchemyItemsRepository()
         items = repository.for_owner(owner_id=owner_id)
         return [
             ItemDto(
@@ -90,7 +90,7 @@ class Items:
         price_amount: Decimal,
         price_currency: str,
     ) -> None:
-        repository = ItemsRepository()
+        repository = SqlAlchemyItemsRepository()
         try:
             item = repository.get(owner_id=owner_id, item_id=item_id)
         except ItemsRepository.NotFound:

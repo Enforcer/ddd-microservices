@@ -1,10 +1,29 @@
+import abc
+
 from items.db import ScopedSession, mapper_registry, metadata
 from items.item import Item
 from sqlalchemy import Column, Integer, Numeric, String, Table
 from sqlalchemy.exc import NoResultFound
 
 
-class ItemsRepository:
+class ItemsRepository(abc.ABC):
+    class NotFound(Exception):
+        pass
+
+    @abc.abstractmethod
+    def add(self, item: Item) -> None:
+        pass
+
+    @abc.abstractmethod
+    def get(self, owner_id: int, item_id: int) -> Item:
+        pass
+
+    @abc.abstractmethod
+    def for_owner(self, owner_id: int) -> list[Item]:
+        pass
+
+
+class SqlAlchemyItemsRepository:
     class NotFound(Exception):
         pass
 
