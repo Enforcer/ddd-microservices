@@ -10,6 +10,7 @@ dependencies = [
     "container-or-host",
     "fastapi[all]>=0.118.0",
     "httpx>=0.28.1",
+    "jsonschema>=4.25.1",
     "kombu>=5.5.4",
     "lagom>=2.7.7",
     "mqlib",
@@ -63,4 +64,3 @@ module = [
     "mockito.*",
 ]
 ignore_missing_imports = true
-
