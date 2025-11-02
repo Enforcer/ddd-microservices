@@ -1,3 +1,5 @@
+from typing import Iterator
+
 import pytest
 
 from items.events import ItemUpdated
@@ -9,10 +11,22 @@ def schema_registry_client() -> ApicurioRegistryClient:
     return ApicurioRegistryClient()
 
 
+@pytest.fixture()
+def golden_schema(schema_registry_client: ApicurioRegistryClient) -> Iterator[None]:
+    schema_registry_client.register_new_artifact("example", GOLDEN_EVENT_SCHEMA)
+    schema_registry_client.set_rule("example", "COMPATIBILITY", "FORWARD")
+    yield
+    schema_registry_client.unregister_artifact("example")
+
+
+@pytest.mark.usefixtures("golden_schema")
 def test_event_schema_maintains_compatibility(schema_registry_client: ApicurioRegistryClient) -> None:
     new_schema = ItemUpdated.model_json_schema()
 
-    pytest.fail("Incomplete test")
+    try:
+        schema_registry_client.check_version("example", new_schema)
+    except IncompatibleVersion:
+        pytest.fail("New schema is incompatible")
 
 
 GOLDEN_EVENT_SCHEMA = {
