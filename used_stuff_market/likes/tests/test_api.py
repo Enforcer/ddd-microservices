@@ -1,17 +1,7 @@
-from typing import Iterator
-
 import mqlib
-import pytest
 from fastapi.testclient import TestClient
-from likes.api import app
 from likes.queues import item_liked, item_unliked
 from mockito import verify, when
-
-
-@pytest.fixture()
-def client() -> Iterator[TestClient]:
-    with TestClient(app) as client:
-        yield client
 
 
 def test_like_can_be_given_and_taken_away(client: TestClient) -> None:

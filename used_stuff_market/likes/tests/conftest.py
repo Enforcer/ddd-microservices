@@ -6,6 +6,8 @@ import alembic.config
 import httpx
 import mqlib
 import pytest
+from fastapi.testclient import TestClient
+from likes.api import app
 from likes.db import engine, session_factory
 from sqlalchemy import create_engine, text
 
@@ -42,3 +44,9 @@ def test_broker() -> Iterator[None]:
         f"http://{mqlib.HOST}:15672/api/vhosts/tests", auth=("guest", "guest")
     )
     response.raise_for_status()
+
+
+@pytest.fixture()
+def client() -> Iterator[TestClient]:
+    with TestClient(app) as client:
+        yield client
