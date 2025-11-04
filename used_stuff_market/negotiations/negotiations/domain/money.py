@@ -39,7 +39,10 @@ class EUR(Currency):
 
 @total_ordering
 class Money:
-    def __init__(self, currency: Type[Currency], amount: Any) -> None:
+    def __init__(self, currency: Type[Currency] | str, amount: Any) -> None:
+        if isinstance(currency, str):
+            currency = Currency.from_code(currency)
+
         if not inspect.isclass(currency) or not issubclass(currency, Currency):
             raise ValueError(f"{currency} is not a subclass of Currency!")
         try:
