@@ -9,6 +9,18 @@ class Status(enum.StrEnum):
     BROKEN_OFF = "BROKEN_OFF"
 
 
+class NegotiationEnded(Exception):
+    pass
+
+
+class OnlyOtherUserCanAccept(Exception):
+    pass
+
+
+class NotParticipant(Exception):
+    pass
+
+
 class Negotiation:
     def __init__(
         self,
@@ -28,7 +40,22 @@ class Negotiation:
         return self._status
 
     def accept(self, user_id: int) -> None:
-        pass
+        self._ensure_pending()
+        self._ensure_participant(user_id)
+        if self._started_by_user_id == user_id:
+            raise OnlyOtherUserCanAccept
+
+        self._status = Status.ACCEPTED
 
     def break_off(self, user_id: int) -> None:
-        pass
+        self._ensure_pending()
+        self._ensure_participant(user_id)
+        self._status = Status.BROKEN_OFF
+
+    def _ensure_pending(self) -> None:
+        if self._status != Status.PENDING:
+            raise NegotiationEnded
+
+    def _ensure_participant(self, user_id: int) -> None:
+        if user_id not in (self._buyer_id, self._seller_id):
+            raise NotParticipant
