@@ -183,3 +183,23 @@ services:
       - ./used_stuff_market/likes:/usr/src/likes
     working_dir: /usr/src/likes
     command: bash -c 'alembic upgrade head && uvicorn likes.api:app --host 0.0.0.0 --port 8500 --reload'
+
+  negotiations:
+    image: micro-usf
+    hostname: docker-usf-negotiations
+    ports:
+      - "8600:8600"
+    volumes:
+      - ./used_stuff_market/negotiations:/usr/src/negotiations
+    working_dir: /usr/src/negotiations
+    command: bash -c 'sleep infinity'
+
+  shipping:
+    image: micro-usf
+    hostname: docker-usf-shipping
+    ports:
+      - "8700:8700"
+    volumes:
+      - ./used_stuff_market/shipping:/usr/src/shipping
+    working_dir: /usr/src/shipping
+    command: bash -c 'sleep infinity'
