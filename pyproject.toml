@@ -30,6 +30,7 @@ dependencies = [
     "redis>=6.4.0",
     "sqlalchemy>=2.0.43",
     "tenacity>=9.1.2",
+    "tracing",
     "watchfiles>=1.1.0",
 ]
 
@@ -52,6 +53,7 @@ dev = [
 [tool.uv.sources]
 mqlib = { path = "libs/mqlib", editable = true }
 container-or-host = { path = "libs/container_or_host", editable = true }
+tracing = { path = "libs/tracing", editable = true }
 
 [tool.mypy]
 strict = true
