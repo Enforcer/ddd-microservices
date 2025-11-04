@@ -1,0 +1,11 @@
+@startuml
+participant Producer
+participant SchemaRegistry
+participant Consumer
+
+Producer -> SchemaRegistry: Publish schema
+SchemaRegistry -> SchemaRegistry: Verify compatibility
+SchemaRegistry --> Producer: << OK >>
+Consumer -> SchemaRegistry: Fetch schema
+Consumer -> Consumer: Generate code\nfrom schema
+@enduml

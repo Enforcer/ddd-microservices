@@ -1,0 +1,12 @@
+@startuml
+
+participant Consumer
+queue Broker
+
+Consumer -> Broker: consume
+Broker --> Consumer: <message>
+
+Consumer -> Broker: ack/reject
+Broker -> Broker: remove\nmessage
+
+@enduml

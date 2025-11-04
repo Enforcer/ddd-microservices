@@ -1,0 +1,22 @@
+@startuml
+
+actor Seller
+participant Items
+database ItemsDB
+queue RabbitMQ
+participant CatalogConsumer
+participant Catalog
+database CatalogDB
+actor Buyer
+
+Seller -> Items: add item
+Items -> ItemsDB: save
+Items -> RabbitMQ: publish
+RabbitMQ -> CatalogConsumer: consume
+CatalogConsumer -> CatalogDB: save
+CatalogConsumer --> RabbitMQ: ack
+Buyer -> Catalog: search
+Catalog -> CatalogDB: read
+
+
+@enduml

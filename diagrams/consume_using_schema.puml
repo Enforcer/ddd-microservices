@@ -1,0 +1,11 @@
+@startuml
+participant Producer
+queue Broker
+participant Consumer
+
+Producer -> Broker: Publish message
+Consumer -> Broker: Consume message
+Consumer -> Consumer: Decode message\nusing code generated from schema
+Consumer -> Consumer: << processing >>
+Consumer -> Broker: << ACK >>
+@enduml
