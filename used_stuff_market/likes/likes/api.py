@@ -3,7 +3,9 @@ from typing import Iterator, AsyncIterator
 
 from fastapi import Depends, FastAPI, Header, Response
 from fastapi.responses import JSONResponse
-from likes.db import db_session
+
+import tracing
+from likes.db import db_session, engine
 from likes.facade import Likes
 from likes.queues import setup_queues
 from sqlalchemy.orm import Session
@@ -16,6 +18,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 
 app = FastAPI(lifespan=lifespan)
+tracing.setup_tracer("LikesApi", app=app, engine=engine)
 
 
 def get_session() -> Iterator[Session]:

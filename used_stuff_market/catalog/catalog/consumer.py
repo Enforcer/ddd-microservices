@@ -1,6 +1,7 @@
 import logging
 
 import mqlib
+import tracing
 from catalog import dao
 from catalog.queues import item_cdc, item_unliked, item_liked, setup_queues
 
@@ -48,6 +49,7 @@ def on_item_unliked(body: dict, message: mqlib.Message) -> None:
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     setup_queues()
+    tracing.setup_tracer("Catalog-Consumer")
     mqlib.consume(
         {
             item_cdc: on_item_change,
