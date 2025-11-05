@@ -12,7 +12,7 @@ class ResourcePayload(BaseModel):
     owner_id: UUID
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "resource_id": 0,
                 "owner_id": "00000000-0000-0000-0000-000000000000",
@@ -36,7 +36,7 @@ class LockingPayload(BaseModel):
     locking_party: UUID
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "locking_party": "00000000-0000-0000-0000-000000000000",
             }

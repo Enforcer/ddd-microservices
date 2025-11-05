@@ -1,6 +1,7 @@
 from decimal import Decimal
 from typing import TypedDict
 
+from items.app.availability import AvailabilityPort
 from items.app.outbox import Outbox
 from items.app.queues import ITEM_CDC
 from items.app.events import ItemUpdated, Price
@@ -21,9 +22,15 @@ class ItemDto(TypedDict):
 
 
 class Items:
-    def __init__(self, repository: ItemsRepository, outbox: Outbox) -> None:
+    def __init__(
+        self,
+        repository: ItemsRepository,
+        outbox: Outbox,
+        availability: AvailabilityPort,
+    ) -> None:
         self._repository = repository
         self._outbox = outbox
+        self._availability = availability
 
     class NoSuchItem(Exception):
         pass
@@ -55,6 +62,7 @@ class Items:
             version=item.version_id,
         )
         self._outbox.put(ITEM_CDC, message)
+        self._availability.register_item(item.id, owner_id)
 
     def get_items(self, owner_id: int) -> list[ItemDto]:
         items = self._repository.for_owner(owner_id=owner_id)

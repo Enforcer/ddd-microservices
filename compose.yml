@@ -124,6 +124,7 @@ services:
     depends_on:
       - postgresdb
       - rabbitmq
+      - availability
     ports:
       - "8100:8100"
     volumes:

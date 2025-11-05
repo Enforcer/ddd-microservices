@@ -5,6 +5,7 @@ from typing import ContextManager
 import mqlib
 from sqlalchemy.orm import Session
 from items.main import container
+from items.infrastructure.db import engine
 from items.infrastructure.models import OutboxEntry
 from items.infrastructure.queues import setup_queues
 
@@ -37,6 +38,7 @@ def run_once():
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO)
+    engine.echo = False
     setup_queues()
 
     logging.info("Running Outbox Processor...")
