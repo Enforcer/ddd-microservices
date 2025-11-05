@@ -21,9 +21,13 @@ def run_once():
         )
         for entry in entries:
             try:
-                mqlib.publish(queue_name_or_queue=entry.queue, message=entry.data)
+                mqlib.publish(
+                    queue_name_or_queue=entry.queue,
+                    message=entry.data,
+                    headers=entry.headers,
+                )
             except Exception as e:
-                entries.retries_left -= 1
+                entry.retries_left -= 1
                 logging.exception("Error while publishing OutboxEntry #%d", entry.id)
             else:
                 session.delete(entry)

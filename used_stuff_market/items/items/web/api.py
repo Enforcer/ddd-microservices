@@ -5,7 +5,9 @@ from typing import AsyncIterator
 from fastapi import FastAPI, Header, Response
 from lagom.integrations.fast_api import FastApiIntegration
 
+import tracing
 from items.app.facade import Items
+from items.infrastructure.db import engine
 from items.infrastructure.queues import setup_queues
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy.orm import Session
@@ -27,6 +29,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 
 app = FastAPI(lifespan=lifespan)
+tracing.setup_tracer("Items-Api", app=app, engine=engine)
 
 
 class Price(BaseModel):
